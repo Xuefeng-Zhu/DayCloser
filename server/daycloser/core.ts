@@ -254,6 +254,9 @@ export async function rankContacts(campaignId: string, limit = 3) {
     if (days.includes(weekday)) {
       score += 1;
       reasons.push(`likes ${weekday}s`);
+    } else if (days.length) {
+      score -= 2;
+      reasons.push(`usually books ${days.join("/")}`);
     }
     if (times.includes(pod)) {
       score += 2;
@@ -270,11 +273,7 @@ export async function rankContacts(campaignId: string, limit = 3) {
       score -= 3;
       reasons.push(`just had a session ${Math.round(months * 4.3)} weeks ago`);
     }
-    const already = invs.filter((i) => i.contactId === ct.id && openCampaigns.has(i.campaignId) && i.status !== "declined");
-    if (already.length) {
-      score -= 5;
-      reasons.push("already has an open invitation");
-    }
+    const already = invs.filter((i) => i.contactId === ct.id && openCampaigns.has(i.campaignId) && !["declined", "closed"].includes(i.status));
     return {
       contactId: ct.id,
       name: ct.name,
@@ -284,10 +283,15 @@ export async function rankContacts(campaignId: string, limit = 3) {
       preferredServiceId: ct.preferredServiceId,
       notes: ct.notes,
       alreadyInvitedHere: invs.some((i) => i.contactId === ct.id && i.campaignId === campaignId),
+      busyElsewhere: already.some((i) => i.campaignId !== campaignId),
     };
   });
-  const eligible = ranked.filter((r) => r.optedIn && !r.alreadyInvitedHere).sort((a, b) => b.score - a.score);
-  const excluded = ranked.filter((r) => !r.optedIn).map((r) => ({ name: r.name, reason: "not opted in to studio messages" }));
+  // Never pile a second invitation on someone who already has a live one.
+  const eligible = ranked.filter((r) => r.optedIn && !r.alreadyInvitedHere && !r.busyElsewhere).sort((a, b) => b.score - a.score);
+  const excluded = [
+    ...ranked.filter((r) => !r.optedIn).map((r) => ({ name: r.name, reason: "not opted in to studio messages" })),
+    ...ranked.filter((r) => r.optedIn && r.busyElsewhere).map((r) => ({ name: r.name, reason: "already has a live invitation for another opening" })),
+  ];
   return { campaignId, opening: `${p.name} · ${fmtSlot(c.startAt, c.endAt)}`, candidates: eligible.slice(0, limit), excludedCount: excluded.length, excluded };
 }
 
@@ -392,6 +396,11 @@ export async function replyToCustomer(input: { invitationId: string; message: st
   const db = getDb();
   await db.insert(t.messages).values({ id: newId("ms"), invitationId: inv.id, role: "agent", body: input.message, offerId: "", createdAt: now() });
   await db.update(t.invitations).set({ needsAgent: 0, status: input.close ? "declined" : inv.status, updatedAt: now() }).where(eq(t.invitations.id, inv.id));
+  if (input.close) {
+    await db.update(t.offers).set({ status: "expired", updatedAt: now() }).where(and(eq(t.offers.invitationId, inv.id), eq(t.offers.status, "proposed")));
+    const [ct] = await db.select().from(t.contacts).where(eq(t.contacts.id, inv.contactId));
+    await logActivity(inv.campaignId, "closed", `${ct?.name} declined; conversation closed.`);
+  }
   return { ok: true };
 }
 
@@ -538,6 +547,9 @@ export async function schedule() {
   const nowMs = Date.now();
   const openings = await computeOpenings();
   const win = scheduleWindow();
+  const db = getDb();
+  const liveOffers = await db.select().from(t.offers).where(inArray(t.offers.status, ["proposed", "checkout"]));
+  const contactRows = await db.select().from(t.contacts);
   return {
     window: win,
     resources: photographers.map((p) => ({ id: p.id, name: p.name, specialty: p.specialty })),
@@ -555,5 +567,16 @@ export async function schedule() {
         source: b.source,
       })),
     openings,
+    offers: liveOffers.map((o) => ({
+      id: o.id,
+      resourceId: o.photographerId,
+      name: contactRows.find((c) => c.id === o.contactId)?.name ?? "Customer",
+      service: services.find((s) => s.id === o.serviceId)?.name ?? "",
+      version: o.version,
+      startAt: o.startAt,
+      endAt: o.endAt,
+      status: o.status,
+      campaignId: o.campaignId,
+    })),
   };
 }

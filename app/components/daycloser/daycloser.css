@@ -19,3 +19,5 @@
 .dc-pulse { animation: dcpulse 1.2s ease-in-out infinite; }
 .dc-scheduler .dc-opening .b-sch-event { border-style: dashed !important; border-width: 2px !important; }
 .dc-scheduler .b-sch-event .dc-ev b { font-size: 0.8em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.dc-scheduler .dc-offer .b-sch-event { border-style: dotted !important; border-width: 2px !important; background: rgba(139, 92, 246, 0.12) !important; z-index: 5; }
+.dc-l-offer { border: 2px dotted #8b5cf6; }

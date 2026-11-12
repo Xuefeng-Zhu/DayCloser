@@ -153,7 +153,7 @@ export default function Studio() {
       <section className="mx-6 rounded-xl border bg-card">
         <div className="flex items-center justify-between border-b px-4 py-2 text-xs text-muted-foreground">
           <span>
-            <Legend cls="dc-l-open" /> Open (never booked) <Legend cls="dc-l-cancel" /> Cancellation <Legend cls="dc-l-book" /> Booking <Legend cls="dc-l-dc" /> Sold by DayCloser <Legend cls="dc-l-held" /> Held in checkout
+            <Legend cls="dc-l-open" /> Open (never booked) <Legend cls="dc-l-cancel" /> Cancellation <Legend cls="dc-l-offer" /> Live offer <Legend cls="dc-l-book" /> Booking <Legend cls="dc-l-dc" /> Sold by DayCloser <Legend cls="dc-l-held" /> Held in checkout
           </span>
           <button className="underline-offset-2 hover:underline" onClick={async () => { await reset.mutateAsync({}); setCampaignId(null); setSelectedOpening(null); scheduleQ.refetch(); campaignsQ.refetch(); }}>
             Reset demo

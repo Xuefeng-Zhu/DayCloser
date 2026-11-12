@@ -22,6 +22,7 @@ export type SchedulePayload = {
     campaignId: string;
     campaignStatus: string;
   }[];
+  offers: { id: string; resourceId: string; name: string; service: string; version: number; startAt: string; endAt: string; status: string; campaignId: string }[];
 };
 
 type Props = {
@@ -79,8 +80,24 @@ export default function StudioScheduler({ data, selectedId, onSelectOpening, onS
       eventStyle: "outlined",
       cls: `dc-opening${o.id === selectedId ? " dc-selected" : ""}`,
     }));
-    return [...bookings, ...openings];
-  }, [data.bookings, data.openings, selectedId]);
+    const offers = (data.offers ?? []).map((o) => ({
+      id: o.id,
+      resourceId: o.resourceId,
+      name: o.name,
+      startDate: new Date(o.startAt),
+      endDate: new Date(o.endAt),
+      kind: "offer",
+      service: o.service,
+      version: o.version,
+      offerStatus: o.status,
+      draggable: false,
+      resizable: false,
+      eventColor: "violet",
+      eventStyle: "outlined",
+      cls: "dc-offer",
+    }));
+    return [...bookings, ...openings, ...offers];
+  }, [data.bookings, data.openings, data.offers, selectedId]);
 
   const config = useMemo(
     () => ({
@@ -126,9 +143,10 @@ export default function StudioScheduler({ data, selectedId, onSelectOpening, onS
         eventDrag: { constrainDragToTimeline: true, showExactDropPosition: true },
         eventTooltip: {
           template: ({ eventRecord }: any) => {
-            const e = eventRecord;
+            const e = { ...(eventRecord.data ?? {}), name: eventRecord.name };
             if (e.kind === "opening")
               return `<b>${e.origin === "cancellation" ? "Cancellation opening" : "Never-booked opening"}</b><br>${e.minutes} min free${e.cancelledCustomer ? `<br>Freed by ${esc(e.cancelledCustomer)}` : ""}<br>${e.campaignStatus ? `DayCloser: ${esc(e.campaignStatus)}` : "Click to sell this opening"}`;
+            if (e.kind === "offer") return `<b>Offer v${e.version} to ${esc(e.name)}</b><br>${esc(e.service)}<br>${e.offerStatus === "checkout" ? "Customer is in PayPal checkout" : "Waiting for the customer"}`;
             if (e.kind === "cancelled") return `<b>${esc(e.name)}</b> cancelled<br>${esc(e.service)}`;
             if (e.kind === "held") return `<b>${esc(e.name)}</b><br>Held during PayPal checkout`;
             return `<b>${esc(e.name)}</b><br>${esc(e.service)}${e.source === "daycloser" ? "<br>Booked by DayCloser, deposit paid" : ""}`;
@@ -156,28 +174,31 @@ export default function StudioScheduler({ data, selectedId, onSelectOpening, onS
             },
           },
           processItems: ({ eventRecord, items }: any) => {
-            if (eventRecord.kind !== "booking") items.cancelBooking = false;
-            if (eventRecord.kind !== "opening") items.sellOpening = false;
+            if (eventRecord.data?.kind !== "booking") items.cancelBooking = false;
+            if (eventRecord.data?.kind !== "opening") items.sellOpening = false;
           },
         },
         nonWorkingTime: true,
       },
-      eventRenderer: ({ eventRecord, renderData }: any) => {
-        const e = eventRecord;
+      eventRenderer: ({ eventRecord }: any) => {
+        const e = { ...(eventRecord.data ?? {}), name: eventRecord.name };
         if (e.kind === "opening") {
           const tag = e.origin === "cancellation" ? "Cancellation" : "Never booked";
           return `<div class="dc-ev"><b>${e.campaignStatus ? "Selling" : "Open"} · ${e.minutes}m</b><span>${tag}</span></div>`;
         }
+        if (e.kind === "offer") return `<div class="dc-ev"><b>Offer v${e.version}</b><span>${esc(e.name)}</span></div>`;
         if (e.kind === "cancelled") return `<div class="dc-ev"><b>Cancelled</b><span>${esc(e.name)}</span></div>`;
         if (e.kind === "held") return `<div class="dc-ev"><b>Held</b><span>${esc(e.name)}</span></div>`;
         return `<div class="dc-ev"><b>${esc(e.name)}</b><span>${esc(e.service)}</span></div>`;
       },
       listeners: {
         eventClick: ({ eventRecord }: any) => {
-          if (eventRecord.kind === "opening") handlers.current.onSelectOpening(String(eventRecord.id));
+          const k = eventRecord.data?.kind;
+          if (k === "opening") handlers.current.onSelectOpening(String(eventRecord.id));
+          else if (k === "offer") return;
           else handlers.current.onSelectBooking(String(eventRecord.id));
         },
-        beforeEventDrag: ({ eventRecord }: any) => eventRecord.kind === "booking",
+        beforeEventDrag: ({ eventRecord }: any) => eventRecord.data?.kind === "booking",
         eventDrop: ({ eventRecords, targetResourceRecord }: any) => {
           const r = eventRecords?.[0];
           if (!r) return;
