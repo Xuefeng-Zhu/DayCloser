@@ -35,3 +35,29 @@
 .daycloser-campaign-customer-grid .dc-campaign-customer-name {
   font-weight: 600;
 }
+
+.dc-campaign-next-step {
+  display: grid;
+  justify-items: start;
+  gap: 0.25rem;
+}
+
+.dc-campaign-review-button {
+  cursor: pointer;
+  border-radius: 0.25rem;
+  padding: 0.25rem 0;
+  color: hsl(var(--foreground));
+  font-weight: 600;
+  text-align: start;
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+}
+
+.dc-campaign-review-button:hover {
+  color: hsl(var(--muted-foreground));
+}
+
+.dc-campaign-review-button:focus-visible {
+  outline: 2px solid hsl(var(--ring));
+  outline-offset: 2px;
+}

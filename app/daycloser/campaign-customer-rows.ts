@@ -4,9 +4,18 @@ import type {
   Hold,
   MerchantConversation,
   MerchantDashboard,
+  Offer,
 } from "@shared/daycloser";
 
 import { money, time } from "./format";
+
+export type CampaignCustomerReview =
+  | {
+      kind: "offer";
+      offer: Offer;
+      presentation: "current" | "sent" | "previous";
+    }
+  | { kind: "exclusion"; reason: string };
 
 export type CampaignCustomerRow = {
   id: string;
@@ -15,9 +24,12 @@ export type CampaignCustomerRow = {
   offer: string;
   status: string;
   nextStep: string;
+  review: CampaignCustomerReview | null;
 };
 
-type Progress = Pick<CampaignCustomerRow, "status" | "nextStep">;
+type Progress = Pick<CampaignCustomerRow, "status" | "nextStep"> & {
+  review?: Extract<CampaignCustomerReview, { kind: "exclusion" }>;
+};
 
 function latestCustomerReply(conversation: MerchantConversation | undefined) {
   let studioResponded = false;
@@ -74,27 +86,45 @@ function paymentProgress(hold: Hold | null | undefined): Progress | undefined {
   }
 }
 
-function exclusionProgress(contact: Contact | undefined): Progress {
+function exclusion(status: string, nextStep: string, reason: string): Progress {
+  return { status, nextStep, review: { kind: "exclusion", reason } };
+}
+
+function exclusionProgress(
+  contact: Contact | undefined,
+  approved: boolean,
+): Progress {
   switch (contact?.eligibility) {
     case "opted_out":
-      return { status: "Opted out", nextStep: "Do not contact." };
+      return exclusion(
+        "Opted out",
+        "Do not contact.",
+        "This contact opted out of outreach.",
+      );
     case "already_booked":
-      return {
-        status: "Already booked",
-        nextStep: "Keep the existing appointment.",
-      };
+      return exclusion(
+        "Already booked",
+        "Keep the existing appointment.",
+        "This contact already has an upcoming appointment.",
+      );
     case "unrelated_interest":
-      return { status: "Unrelated interest", nextStep: "Skip this campaign." };
+      return exclusion(
+        "Unrelated interest",
+        "Skip this campaign.",
+        "This contact's recorded preference falls outside the campaign's services.",
+      );
     case "eligible":
-      return {
-        status: "Outside campaign policy",
-        nextStep: "Keep outreach within the selected audience.",
-      };
+      return exclusion(
+        "Outside campaign policy",
+        "Keep outreach within the selected audience.",
+        `This contact is outside the campaign's ${approved ? "approved" : "proposed"} audience.`,
+      );
     default:
-      return {
-        status: "Contact unavailable",
-        nextStep: "Verify eligibility before any outreach.",
-      };
+      return exclusion(
+        "Contact unavailable",
+        "Verify eligibility before any outreach.",
+        "The current studio roster has no matching contact record.",
+      );
   }
 }
 
@@ -115,7 +145,8 @@ function outreachProgress(
 ): Progress {
   const payment = paymentProgress(hold);
   if (payment) return payment;
-  if (!inAudience) return exclusionProgress(contact);
+  if (!inAudience)
+    return exclusionProgress(contact, Boolean(campaign.approvedAt));
 
   const offerStatus = conversation?.offer?.status;
   if (campaign.status === "completed") {
@@ -135,7 +166,8 @@ function outreachProgress(
       nextStep: "Select a current opening for new outreach.",
     };
   }
-  if (!contact?.eligible) return exclusionProgress(contact);
+  if (!contact?.eligible)
+    return exclusionProgress(contact, Boolean(campaign.approvedAt));
   if (campaign.status === "proposed") {
     return {
       status: "Awaiting approval",
@@ -244,14 +276,25 @@ export function buildCampaignCustomerRows(
         hold.status === "capture_pending" ||
         hold.status === "booked"
       : sentOffer && !reply?.unanswered && !openingHeld;
-    const offerPrefix = offerIsCurrent
-      ? ""
+    const presentation = offerIsCurrent
+      ? "current"
       : sentOffer
-        ? "Sent offer: "
-        : "Previous offer: ";
+        ? "sent"
+        : "previous";
+    const offerPrefix =
+      presentation === "current"
+        ? ""
+        : presentation === "sent"
+          ? "Sent offer: "
+          : "Previous offer: ";
     const offer = recordedOffer
       ? `${offerPrefix}${recordedOffer.serviceName} · ${time(recordedOffer.startAt, timezone)} · ${money(recordedOffer.priceCents, recordedOffer.currency)} total`
       : emptyOffer(contact, inAudience);
+    const review: CampaignCustomerReview | null =
+      progress.review ??
+      (recordedOffer
+        ? { kind: "offer", offer: recordedOffer, presentation }
+        : null);
     return {
       id: customer.id,
       customer: contact?.name ?? customer.name,
@@ -261,6 +304,7 @@ export function buildCampaignCustomerRows(
           .join(" · ") || "No recorded preference",
       offer,
       ...progress,
+      review,
     };
   });
 }

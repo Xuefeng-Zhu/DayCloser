@@ -49,7 +49,11 @@ export default function StudioCampaigns() {
           />
           {campaign && (
             <div className="order-3 min-w-0 @min-[58rem]/daycloser:order-none">
-              <CampaignCustomerGrid rows={customerRows} />
+              <CampaignCustomerGrid
+                key={campaign.id}
+                rows={customerRows}
+                timezone={dashboard.studio.timezone}
+              />
             </div>
           )}
           <MerchantActivity dashboard={dashboard} />
