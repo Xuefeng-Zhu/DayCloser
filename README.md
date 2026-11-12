@@ -20,6 +20,8 @@ The first version is built for one independent photography studio, Lumen & Co. P
 | --- | --- |
 | **Builder.io Agent-Native** | App framework, the agent runtime and chat, shared typed actions (`actions/*.ts`) used by the agent, the UI and HTTP alike, SQL persistence and migrations, conversation persistence, UI context, and the server-side automation that runs the agent when a customer replies (`daycloser.customer.replied` event → `jobs/daycloser-adapt-offer.md`). |
 | **Bryntum Scheduler** | The merchant's interactive resource timeline: photographers as resources, bookings, holds, cancellations and sellable openings as events; drag to move a booking (overlaps rejected server-side), context menu to cancel or sell. |
+| **Bryntum Grid** | The **Customers** page: every contact with consent, wanted service, preferred days and times, last session, next booking and live DayCloser outreach status; grouped by consent, filter bar, row expander for notes and the current offer. |
+| **Bryntum Calendar** | The **Calendar** page: the same bookings, openings and live offers in day, week, month and agenda views with a photographer filter; clicking an opening opens it in Studio to sell. |
 | **PayPal sandbox** | Orders v2 checkout and capture of the booking deposit, with idempotency keys (`PayPal-Request-Id`), a checkout hold, and capture-time feasibility re-check. |
 
 ## Shared actions
@@ -39,7 +41,7 @@ pnpm dev
 
 Open `/home` (Studio). Data is stored in local PGlite (`data/`) or Postgres via `DATABASE_URL`. Use **Reset demo** to reseed.
 
-Bryntum Scheduler is installed from the public 45-day trial package (`@bryntum/scheduler@npm:@bryntum/scheduler-trial`).
+Bryntum is installed from the public trial package `@bryntum/calendar@npm:@bryntum/calendar-trial@7.3.8` with `@bryntum/calendar-react`; that bundle includes Scheduler and Grid, which power the Studio timeline and the Customers page.
 
 PayPal: create a sandbox REST app at developer.paypal.com and pay with a sandbox *personal* account.
 

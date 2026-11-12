@@ -580,3 +580,62 @@ export async function schedule() {
     })),
   };
 }
+
+/** The studio's customer list for the Customers grid: consent, preferences, booking history and DayCloser outreach per contact. */
+export async function customers() {
+  await ensureSeeded();
+  const db = getDb();
+  const { photographers, services } = await studio();
+  const [contacts, bookings, invs, offers, campaigns] = await Promise.all([
+    db.select().from(t.contacts),
+    db.select().from(t.bookings),
+    db.select().from(t.invitations),
+    db.select().from(t.offers),
+    db.select().from(t.campaigns),
+  ]);
+  const nowMs = Date.now();
+  const svcName = (id: string) => services.find((s) => s.id === id)?.name ?? "";
+  const phName = (id: string) => photographers.find((p) => p.id === id)?.name ?? "";
+  return contacts
+    .map((ct) => {
+      const mine = bookings.filter((b) => b.contactId === ct.id || (!b.contactId && b.customerName === ct.name));
+      const upcoming = mine
+        .filter((b) => b.status === "confirmed" && Date.parse(b.endAt) > nowMs)
+        .sort((a, b) => a.startAt.localeCompare(b.startAt));
+      const myInvs = invs.filter((i) => i.contactId === ct.id).sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+      const latest = myInvs[0];
+      const latestOffers = latest ? offers.filter((o) => o.invitationId === latest.id).sort((a, b) => b.version - a.version) : [];
+      const offer = latestOffers.find((o) => o.status !== "superseded") ?? latestOffers[0];
+      const camp = latest ? campaigns.find((c) => c.id === latest.campaignId) : undefined;
+      const paid = offers.filter((o) => o.contactId === ct.id && o.status === "paid");
+      let outreach = "Not contacted";
+      if (!ct.optedIn) outreach = "Opted out";
+      else if (latest) {
+        if (offer?.status === "paid") outreach = "Booked by DayCloser";
+        else if (camp?.status === "won") outreach = "Opening went to someone else";
+        else if (latest.status === "declined") outreach = "Declined";
+        else if (offer?.status === "checkout") outreach = "Paying deposit";
+        else if (latest.lastReplyAt) outreach = `Replied · offer v${offer?.version ?? 1}`;
+        else outreach = `Invited · offer v${offer?.version ?? 1}`;
+      }
+      return {
+        id: ct.id,
+        name: ct.name,
+        email: ct.email,
+        optedIn: !!ct.optedIn,
+        segment: ct.optedIn ? "Opted in to studio openings" : "Not opted in (never contacted)",
+        service: svcName(ct.preferredServiceId),
+        photographer: phName(ct.preferredPhotographerId),
+        days: parse<string[]>(ct.preferredDays, []).join(", "),
+        times: parse<string[]>(ct.preferredTimes, []).join(", "),
+        lastSessionAt: ct.lastSessionAt,
+        nextBooking: upcoming[0] ? fmtSlot(upcoming[0].startAt, upcoming[0].endAt) : "",
+        outreach,
+        offer: offer ? `${svcName(offer.serviceId)} · ${phName(offer.photographerId)} · ${fmtSlot(offer.startAt, offer.endAt)}` : "",
+        depositsPaid: paid.reduce((s, o) => s + o.depositCents, 0) / 100,
+        token: latest && ct.optedIn ? latest.token : "",
+        notes: ct.notes,
+      };
+    })
+    .sort((a, b) => Number(b.optedIn) - Number(a.optedIn) || a.name.localeCompare(b.name));
+}

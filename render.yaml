@@ -1,0 +1,35 @@
+# Render Blueprint: one Node web service + one Postgres database.
+services:
+  - type: web
+    name: daycloser
+    runtime: node
+    plan: free
+    buildCommand: corepack enable && pnpm install --frozen-lockfile && NODE_OPTIONS=--max-old-space-size=3000 pnpm build
+    startCommand: node .output/server/index.mjs
+    healthCheckPath: /
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+      - key: NODE_ENV
+        value: production
+      - key: AGENT_NATIVE_TELEMETRY
+        value: "0"
+      - key: AUTH_SKIP_EMAIL_VERIFICATION
+        value: "1"
+      - key: AGENT_MAIN_CHAT_MAX_OUTPUT_TOKENS
+        value: "8000"
+      - key: AGENT_EMPTY_RESPONSE_RETRY_MAX_OUTPUT_TOKENS
+        value: "8000"
+      - key: BETTER_AUTH_SECRET
+        generateValue: true
+      - key: DATABASE_URL
+        fromDatabase:
+          name: daycloser-db
+          property: connectionString
+      - key: OPENROUTER_API_KEY
+        sync: false
+      - key: PAYPAL_CREDENTIALS
+        sync: false
+databases:
+  - name: daycloser-db
+    plan: free

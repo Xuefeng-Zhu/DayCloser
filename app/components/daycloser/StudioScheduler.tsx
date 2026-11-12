@@ -1,9 +1,6 @@
-import "@bryntum/scheduler/scheduler.css";
-import "@bryntum/scheduler/svalbard-light.css";
-import "@bryntum/scheduler/fontawesome/css/fontawesome.css";
-import "@bryntum/scheduler/fontawesome/css/solid.css";
+import "./bryntum-theme";
 
-import { BryntumScheduler } from "@bryntum/scheduler-react";
+import { BryntumScheduler } from "@bryntum/calendar-react";
 import { useMemo, useRef } from "react";
 
 export type SchedulePayload = {

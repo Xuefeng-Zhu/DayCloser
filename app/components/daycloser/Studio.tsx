@@ -74,6 +74,15 @@ export default function Studio() {
     if (!campaignId && campaigns.length) setCampaignId(campaigns[0].id);
   }, [campaigns, campaignId]);
 
+  // Deep links from the Calendar and Customers pages: /home?opening=<id> or /home?campaign=<id>.
+  useEffect(() => {
+    const q = new URLSearchParams(window.location.search);
+    const op = q.get("opening");
+    const cp = q.get("campaign");
+    if (op) setSelectedOpening(op);
+    if (cp) setCampaignId(cp);
+  }, []);
+
   useEffect(() => {
     if (!notice) return;
     const t = setTimeout(() => setNotice(null), 5000);

@@ -21,3 +21,17 @@
 .dc-scheduler .b-sch-event .dc-ev b { font-size: 0.8em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .dc-scheduler .dc-offer .b-sch-event { border-style: dotted !important; border-width: 2px !important; background: rgba(139, 92, 246, 0.12) !important; z-index: 5; }
 .dc-l-offer { border: 2px dotted #8b5cf6; }
+.dc-pill { display: inline-block; border-radius: 999px; padding: 2px 9px; font-size: 0.78em; font-weight: 600; white-space: nowrap; }
+.dc-pill-won { background: #ede9fe; color: #5b21b6; }
+.dc-pill-pay { background: #ffedd5; color: #9a3412; }
+.dc-pill-neg { background: #fef3c7; color: #92400e; }
+.dc-pill-inv { background: #dbeafe; color: #1e40af; }
+.dc-pill-out { background: #f3f4f6; color: #6b7280; }
+.dc-pill-idle { background: #ecfdf5; color: #047857; }
+.dc-link { color: #0f9f6e; font-weight: 600; text-decoration: none; }
+.dc-link:hover { text-decoration: underline; }
+.dc-expander { padding: 8px 16px 12px 48px; font-size: 0.85em; }
+.dc-expander p { margin: 2px 0 8px; opacity: 0.85; }
+.dc-calendar .dc-cal-opening { --b-cal-event-border-style: dashed; }
+.dc-calendar .dc-cal-opening .b-cal-event { border: 2px dashed #16a34a !important; background: rgba(22, 163, 74, 0.10) !important; color: #166534 !important; cursor: pointer; }
+.dc-calendar .dc-cal-offer .b-cal-event { border: 2px dotted #8b5cf6 !important; background: rgba(139, 92, 246, 0.12) !important; color: #5b21b6 !important; }

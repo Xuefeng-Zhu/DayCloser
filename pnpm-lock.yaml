@@ -86,10 +86,10 @@ importers:
       '@ai-sdk/openai':
         specifier: ^3.0.53
         version: 3.0.141(zod@4.6.7)
-      '@bryntum/scheduler':
-        specifier: npm:@bryntum/scheduler-trial@7.3.8
-        version: '@bryntum/scheduler-trial@7.3.8'
-      '@bryntum/scheduler-react':
+      '@bryntum/calendar':
+        specifier: npm:@bryntum/calendar-trial@7.3.8
+        version: '@bryntum/calendar-trial@7.3.8'
+      '@bryntum/calendar-react':
         specifier: 7.3.8
         version: 7.3.8
       '@electric-sql/pglite':
@@ -861,15 +861,15 @@ packages:
   '@better-fetch/fetch@1.3.2':
     resolution: {integrity: sha512-Gs7n99b5tqUC6cQAPbV0uED3IraHB6xQbHLQ/C3l7ZFafHScOx9pQ+DYmP5blbLFShVWLqxNUlI9wi4xU/X+ow==}
 
-  '@bryntum/scheduler-react@7.3.8':
-    resolution: {integrity: sha512-PTzGFzsCrRoqLbbVqHlJ4sO8BSEEPzIkpVsCEwVy4Ci9hQlbVD62dTKcU35kTp81NhuDPw85l9Jj0xeQfCpZGg==}
+  '@bryntum/calendar-react@7.3.8':
+    resolution: {integrity: sha512-bkDZKhSXn7R+OzTGcot8mbAeAkN2QAN14w6ip4rk48mH60NQuw+P8hoHARX6pmCHzvSNIH1nRgIi+NM4iXt8hA==}
     engines: {node: '>=0.10.0'}
 
-  '@bryntum/scheduler-trial-lib@1.0.1':
-    resolution: {integrity: sha512-gTrNKz2O7JdNalEU9hma0fYyZ1mGhXXb6yCn/+E+SPjRyg/qFad1bQ7vfBUFitw3S3eB66IdtAZLD+QCtiIUKw==}
+  '@bryntum/calendar-trial-lib@1.0.1':
+    resolution: {integrity: sha512-OJa56mAf2r8X//toJ+u8pp8QgIfNIBb0E4jyeCoZY0inu4RJlgl3aLb9M2u7Mn79qF6wTICh/iaI9Xet4r4K7w==}
 
-  '@bryntum/scheduler-trial@7.3.8':
-    resolution: {integrity: sha512-VyZvV5koom8Td4DQF1aGMKpT7SKVieSMeVd0CuzEF4sctx2+bxoXXYeWxgLkWPzuKWJ9p8AxP4a06aYvxo0NvA==}
+  '@bryntum/calendar-trial@7.3.8':
+    resolution: {integrity: sha512-GnFoilyKS2E7zG+9Arya98OVcC/2vEZkdUlF5uzFuibNzv75ZxcBOSoimgxGMBtsobDpuOuWQYzp07g7z/DC2Q==}
     engines: {node: '>=0.10.0'}
 
   '@clack/core@1.6.0':
@@ -6216,13 +6216,13 @@ snapshots:
 
   '@better-fetch/fetch@1.3.2': {}
 
-  '@bryntum/scheduler-react@7.3.8': {}
+  '@bryntum/calendar-react@7.3.8': {}
 
-  '@bryntum/scheduler-trial-lib@1.0.1': {}
+  '@bryntum/calendar-trial-lib@1.0.1': {}
 
-  '@bryntum/scheduler-trial@7.3.8':
+  '@bryntum/calendar-trial@7.3.8':
     dependencies:
-      '@bryntum/scheduler-trial-lib': 1.0.1
+      '@bryntum/calendar-trial-lib': 1.0.1
 
   '@clack/core@1.6.0':
     dependencies:

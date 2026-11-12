@@ -14,17 +14,27 @@ const API = process.env.PAYPAL_API_BASE || "https://api-m.sandbox.paypal.com";
  */
 const proxyAuth = () => process.env.PAYPAL_PROXY_AUTH === "1";
 
+/** PAYPAL_CLIENT_ID + PAYPAL_CLIENT_SECRET, or PAYPAL_CREDENTIALS="CLIENT_ID:SECRET". */
+function creds(): { id: string; secret: string } | null {
+  const id = process.env.PAYPAL_CLIENT_ID;
+  const secret = process.env.PAYPAL_CLIENT_SECRET;
+  if (id && secret) return { id, secret };
+  const both = process.env.PAYPAL_CREDENTIALS ?? "";
+  const i = both.indexOf(":");
+  return i > 0 ? { id: both.slice(0, i).trim(), secret: both.slice(i + 1).trim() } : null;
+}
+
 export function paypalConfigured() {
-  return proxyAuth() || !!(process.env.PAYPAL_CLIENT_ID && process.env.PAYPAL_CLIENT_SECRET);
+  return proxyAuth() || !!creds();
 }
 
 let cached: { token: string; exp: number } | null = null;
 
 async function accessToken(): Promise<string> {
   if (cached && cached.exp > Date.now() + 60000) return cached.token;
-  const id = process.env.PAYPAL_CLIENT_ID;
-  const secret = process.env.PAYPAL_CLIENT_SECRET;
-  if (!id || !secret) throw new Error("PayPal sandbox is not configured: set PAYPAL_CLIENT_ID and PAYPAL_CLIENT_SECRET.");
+  const c = creds();
+  if (!c) throw new Error("PayPal sandbox is not configured: set PAYPAL_CLIENT_ID and PAYPAL_CLIENT_SECRET (or PAYPAL_CREDENTIALS).");
+  const { id, secret } = c;
   const res = await fetch(`${API}/v1/oauth2/token`, {
     method: "POST",
     headers: { Authorization: `Basic ${Buffer.from(`${id}:${secret}`).toString("base64")}`, "Content-Type": "application/x-www-form-urlencoded" },
