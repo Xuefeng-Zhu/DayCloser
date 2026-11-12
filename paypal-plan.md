@@ -1,6 +1,6 @@
 # PayPal plan — deposit refund on cancellation
 
-Built with the **APIMatic Context Plugin for PayPal** (`npx context-plugins install paypal`, plugin v0.4.1,
+Written following the **APIMatic Context Plugin for PayPal** (plugin v0.4.1; its skills were read from the plugin repo:
 skills `typescript-integrate-paypal`, `typescript-getting-started`, `typescript-client-initialization`,
 `typescript-calling-endpoints`, `typescript-error-handling`, `typescript-configuration-resilience`).
 Every fact below comes from the SDK map shipped in `node_modules/paypal/sdk-map.md` and
@@ -9,7 +9,10 @@ Every fact below comes from the SDK map shipped in `node_modules/paypal/sdk-map.
 ## Scope
 When the studio cancels a booking that DayCloser sold with a paid PayPal deposit, refund that deposit
 to the customer through the APIMatic-generated PayPal TypeScript SDK (`paypal`, client `PaypalClient`),
-then free the slot so the agent can resell it. Existing Orders v2 create/capture code is unchanged.
+then free the slot so the agent can resell it. Follow-up (same rules): Orders v2 create/get/capture in `server/daycloser/paypal.ts`
+moved onto the same SDK (`createOrder` with `PayPal-Request-Id` per hold, `captureOrder` with `PayPal-Request-Id` per order and an
+empty JSON body, `getOrder` re-read on ORDER_ALREADY_CAPTURED or a lost answer). Verified in sandbox: order 80K28107JA907764R captured
+(72003549W4948223C, $45.00) and refunded on cancel (0N95201633641864X).
 
 ## Repo survey
 - ESM (`"type": "module"`), Node >= 22, TypeScript via `@agent-native/core/tsconfig.base.json`.

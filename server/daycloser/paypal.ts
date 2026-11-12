@@ -1,72 +1,42 @@
 import { and, eq } from "drizzle-orm";
+import { CheckoutPaymentIntent, PayPalExperienceUserAction, PayPalWalletContextShippingPreference, PaypalError } from "paypal";
+import type { Order } from "paypal";
 
 import { getDb } from "../db/index.js";
 import * as t from "../db/schema.js";
-import { HOLD_MINUTES, checkSlot, getCampaignRow, getInvitationByToken, getService, logActivity, newId, now } from "./core.js";
+import { HOLD_MINUTES, activeBookings, checkSlot, getCampaignRow, getInvitationByToken, getService, logActivity, newId, now } from "./core.js";
 import { fmtSlot, money } from "./time.js";
-
-const API = process.env.PAYPAL_API_BASE || "https://api-m.sandbox.paypal.com";
+import { paypalSdk } from "./refunds.js";
 
 /**
- * PAYPAL_PROXY_AUTH=1 is for sandboxes where an egress proxy injects the app's
- * credentials as HTTP Basic auth (PayPal REST accepts client_id:secret Basic auth),
- * so the secret never enters the process.
+ * Every PayPal call goes through the APIMatic-generated PayPal TypeScript SDK (`paypal`),
+ * following the APIMatic Context Plugin for PayPal's skills (contract sheet: paypal-plan.md).
  */
-const proxyAuth = () => process.env.PAYPAL_PROXY_AUTH === "1";
-
-/** PAYPAL_CLIENT_ID + PAYPAL_CLIENT_SECRET, or PAYPAL_CREDENTIALS="CLIENT_ID:SECRET". */
-function creds(): { id: string; secret: string } | null {
-  const id = process.env.PAYPAL_CLIENT_ID;
-  const secret = process.env.PAYPAL_CLIENT_SECRET;
-  if (id && secret) return { id, secret };
-  const both = process.env.PAYPAL_CREDENTIALS ?? "";
-  const i = both.indexOf(":");
-  return i > 0 ? { id: both.slice(0, i).trim(), secret: both.slice(i + 1).trim() } : null;
-}
-
 export function paypalConfigured() {
-  return proxyAuth() || !!creds();
+  return process.env.PAYPAL_PROXY_AUTH === "1" || !!(process.env.PAYPAL_CLIENT_ID && process.env.PAYPAL_CLIENT_SECRET) || (process.env.PAYPAL_CREDENTIALS ?? "").includes(":");
 }
 
-let cached: { token: string; exp: number } | null = null;
-
-async function accessToken(): Promise<string> {
-  if (cached && cached.exp > Date.now() + 60000) return cached.token;
-  const c = creds();
-  if (!c) throw new Error("PayPal sandbox is not configured: set PAYPAL_CLIENT_ID and PAYPAL_CLIENT_SECRET (or PAYPAL_CREDENTIALS).");
-  const { id, secret } = c;
-  const res = await fetch(`${API}/v1/oauth2/token`, {
-    method: "POST",
-    headers: { Authorization: `Basic ${Buffer.from(`${id}:${secret}`).toString("base64")}`, "Content-Type": "application/x-www-form-urlencoded" },
-    body: "grant_type=client_credentials",
-  });
-  const j = (await res.json()) as { access_token?: string; expires_in?: number; error_description?: string };
-  if (!res.ok || !j.access_token) throw new Error(`PayPal auth failed: ${j.error_description ?? res.status}`);
-  cached = { token: j.access_token, exp: Date.now() + (j.expires_in ?? 3000) * 1000 };
-  return cached.token;
+/** The PayPal error issue code (e.g. ORDER_ALREADY_CAPTURED) from a typed SDK error arm, if any. */
+function issueOf(err: unknown): string {
+  if (!(err instanceof PaypalError) || err.kind !== "api") return "";
+  const payload = err.payload as { body?: { details?: { issue?: string }[] } };
+  return payload.body?.details?.[0]?.issue ?? "";
 }
 
-async function pp<T>(path: string, init: RequestInit & { idempotencyKey?: string } = {}): Promise<T> {
-  const auth: Record<string, string> = proxyAuth() ? {} : { Authorization: `Bearer ${await accessToken()}` };
-  const res = await fetch(`${API}${path}`, {
-    ...init,
-    headers: {
-      ...auth,
-      "Content-Type": "application/json",
-      Prefer: "return=representation",
-      ...(init.idempotencyKey ? { "PayPal-Request-Id": init.idempotencyKey } : {}),
-    },
-  });
-  const text = await res.text();
-  const j = text ? JSON.parse(text) : {};
-  if (!res.ok) {
-    const detail = j?.details?.[0]?.description || j?.message || res.statusText;
-    const err = new Error(`PayPal ${res.status}: ${detail}`) as Error & { paypal?: unknown; status?: number };
-    err.paypal = j;
-    err.status = res.status;
-    throw err;
+/** A readable message for the customer page from any SDK failure. */
+function explain(err: unknown): Error {
+  if (err instanceof PaypalError) {
+    if (err.kind === "api") {
+      const payload = err.payload as { body?: { message?: string; details?: { description?: string }[] } };
+      return new Error(`PayPal ${err.status}: ${payload.body?.details?.[0]?.description ?? payload.body?.message ?? err.message}`);
+    }
+    return new Error(`PayPal ${err.kind} error: ${err.message}`);
   }
-  return j as T;
+  return err instanceof Error ? err : new Error(String(err));
+}
+
+function approveLink(order: Order): string | undefined {
+  return order.links?.find((l) => l.rel === "payer-action" || l.rel === "approve")?.href;
 }
 
 async function currentOffer(invitationId: string) {
@@ -88,9 +58,9 @@ export async function startDepositCheckout(token: string, origin: string) {
   // Reuse a still-valid hold and order on a repeat click.
   const [existingHold] = await db.select().from(t.bookings).where(and(eq(t.bookings.offerId, offer.id), eq(t.bookings.status, "held")));
   if (offer.status === "checkout" && offer.paypalOrderId && existingHold && Date.parse(existingHold.holdExpiresAt) > Date.now()) {
-    const order = await pp<{ links: { rel: string; href: string }[] }>(`/v2/checkout/orders/${offer.paypalOrderId}`);
-    const approve = order.links.find((l) => l.rel === "approve" || l.rel === "payer-action");
-    if (approve) return { approveUrl: approve.href, orderId: offer.paypalOrderId };
+    const order = await paypalSdk().orders.getOrder({ id: offer.paypalOrderId }).catch(() => null);
+    const href = order && approveLink(order);
+    if (href) return { approveUrl: href, orderId: offer.paypalOrderId };
   }
 
   const check = await checkSlot(offer.photographerId, offer.serviceId, offer.startAt, existingHold?.id ?? "");
@@ -117,43 +87,62 @@ export async function startDepositCheckout(token: string, origin: string) {
       createdAt: now(),
       updatedAt: now(),
     });
+    // Close the check-then-insert race: two customers can pass checkSlot before either hold lands.
+    // Re-read after our insert; if an overlapping confirmed booking or an earlier live hold exists, we lose and back out.
+    const [mine] = await db.select().from(t.bookings).where(eq(t.bookings.id, holdId));
+    const key = (b: { createdAt: string; id: string }) => `${b.createdAt}|${b.id}`;
+    const s = Date.parse(offer.startAt), e = Date.parse(offer.endAt);
+    const rival = (await activeBookings()).find(
+      (b) => b.id !== holdId && b.photographerId === offer.photographerId && Date.parse(b.startAt) < e && Date.parse(b.endAt) > s &&
+        (b.status === "confirmed" || !mine || key(b) < key(mine)),
+    );
+    if (rival) {
+      await db.delete(t.bookings).where(eq(t.bookings.id, holdId));
+      throw new Error("This time is no longer available: another customer is checking out for it right now.");
+    }
   }
 
   const value = (offer.depositCents / 100).toFixed(2);
-  const order = await pp<{ id: string; links: { rel: string; href: string }[] }>("/v2/checkout/orders", {
-    method: "POST",
-    idempotencyKey: `dc-${offer.id}-${holdExpiresAt}`,
-    body: JSON.stringify({
-      intent: "CAPTURE",
-      purchase_units: [
-        {
-          reference_id: offer.id,
-          custom_id: offer.id,
-          invoice_id: `${offer.id}-${Date.now()}`,
-          description: `Deposit: ${svc.name}, ${fmtSlot(offer.startAt, offer.endAt)}`.slice(0, 127),
-          soft_descriptor: "LUMEN CO PHOTO",
-          amount: { currency_code: "USD", value },
-        },
-      ],
-      payment_source: {
-        paypal: {
-          experience_context: {
-            brand_name: "Lumen & Co. Photography",
-            user_action: "PAY_NOW",
-            shipping_preference: "NO_SHIPPING",
-            return_url: `${origin}/offer/${token}?paypal=return`,
-            cancel_url: `${origin}/offer/${token}?paypal=cancel`,
+  let order: Order;
+  try {
+    order = await paypalSdk().orders.createOrder({
+      payPalRequestId: `dc-${offer.id}-${holdExpiresAt}`,
+      prefer: "return=representation",
+      body: {
+        intent: CheckoutPaymentIntent.Capture,
+        purchaseUnits: [
+          {
+            referenceId: offer.id,
+            customId: offer.id,
+            invoiceId: `${offer.id}-${Date.now()}`,
+            description: `Deposit: ${svc.name}, ${fmtSlot(offer.startAt, offer.endAt)}`.slice(0, 127),
+            softDescriptor: "LUMEN CO PHOTO",
+            amount: { currencyCode: "USD", value },
+          },
+        ],
+        paymentSource: {
+          paypal: {
+            experienceContext: {
+              brandName: "Lumen & Co. Photography",
+              userAction: PayPalExperienceUserAction.PayNow,
+              shippingPreference: PayPalWalletContextShippingPreference.NoShipping,
+              returnUrl: `${origin}/offer/${token}?paypal=return`,
+              cancelUrl: `${origin}/offer/${token}?paypal=cancel`,
+            },
           },
         },
       },
-    }),
-  });
+    });
+  } catch (e) {
+    throw explain(e);
+  }
+  if (!order.id) throw new Error("PayPal did not return an order id.");
   await db.update(t.offers).set({ status: "checkout", paypalOrderId: order.id, updatedAt: now() }).where(eq(t.offers.id, offer.id));
   await logActivity(inv.campaignId, "checkout", `${ct?.name} started PayPal checkout for ${money(offer.depositCents)} (order ${order.id}); slot held ${HOLD_MINUTES} min.`);
   await db.update(t.campaigns).set({ status: "awaiting_payment", updatedAt: now() }).where(eq(t.campaigns.id, inv.campaignId));
-  const approve = order.links.find((l) => l.rel === "payer-action" || l.rel === "approve");
-  if (!approve) throw new Error("PayPal did not return an approval link.");
-  return { approveUrl: approve.href, orderId: order.id };
+  const approveUrl = approveLink(order);
+  if (!approveUrl) throw new Error("PayPal did not return an approval link.");
+  return { approveUrl, orderId: order.id };
 }
 
 /** Back from PayPal: capture the order, then turn the hold into a confirmed booking and close the campaign. */
@@ -170,18 +159,23 @@ export async function captureDeposit(token: string, orderId: string) {
   const check = await checkSlot(offer.photographerId, offer.serviceId, offer.startAt, hold?.id ?? "");
   if (!check.ok) throw new Error(`The time is no longer available (${check.reason}). You have not been charged.`);
 
-  type Capture = { id: string; status: string; purchase_units: { payments: { captures: { id: string; status: string; amount: { value: string } }[] } }[] };
-  let cap: Capture;
+  let cap: Order;
   try {
-    cap = await pp<Capture>(`/v2/checkout/orders/${orderId}/capture`, { method: "POST", idempotencyKey: `dc-cap-${orderId}` });
+    // An empty body makes the SDK send Content-Type: application/json; PayPal answers 415 without it.
+    cap = await paypalSdk().orders.captureOrder({ id: orderId, payPalRequestId: `dc-cap-${orderId}`, prefer: "return=representation", body: {} });
   } catch (e) {
-    const err = e as Error & { paypal?: { details?: { issue?: string }[] } };
-    if (err.paypal?.details?.[0]?.issue === "ORDER_ALREADY_CAPTURED") {
-      cap = await pp<Capture>(`/v2/checkout/orders/${orderId}`);
-    } else throw e;
+    // Already captured (a repeat return), or the answer was lost in transit: re-read the order before deciding.
+    const lost = e instanceof PaypalError && (e.kind === "connection" || e.kind === "timeout" || e.kind === "decode");
+    if (issueOf(e) === "ORDER_ALREADY_CAPTURED" || lost) {
+      try {
+        cap = await paypalSdk().orders.getOrder({ id: orderId });
+      } catch (e2) {
+        throw explain(lost ? e : e2);
+      }
+    } else throw explain(e);
   }
-  const capture = cap.purchase_units?.[0]?.payments?.captures?.[0];
-  if (cap.status !== "COMPLETED" || !capture || capture.status !== "COMPLETED") throw new Error(`PayPal capture not completed (status ${capture?.status ?? cap.status}).`);
+  const capture = cap.purchaseUnits?.[0]?.payments?.captures?.[0];
+  if (cap.status !== "COMPLETED" || !capture?.id || capture.status !== "COMPLETED") throw new Error(`PayPal capture not completed (status ${capture?.status ?? cap.status}).`);
 
   const ts = now();
   const bookingId = hold?.id ?? newId("bk");
@@ -212,7 +206,7 @@ export async function captureDeposit(token: string, orderId: string) {
     await db.insert(t.messages).values({ id: newId("ms"), invitationId: o.id, role: "system", body: "This opening has just been booked. Thanks for your interest; we'll reach out when another time fits.", offerId: "", createdAt: ts });
   }
   await logActivity(inv.campaignId, "paid", `${ct?.name} paid ${money(offer.depositCents)} via PayPal (capture ${capture.id}). Booking confirmed: ${svc.name}, ${fmtSlot(offer.startAt, offer.endAt)}.`);
-  return { ok: true, bookingId, captureId: capture.id, amount: capture.amount.value };
+  return { ok: true, bookingId, captureId: capture.id, amount: capture.amount?.value ?? (offer.depositCents / 100).toFixed(2) };
 }
 
 export async function cancelCheckout(token: string) {
