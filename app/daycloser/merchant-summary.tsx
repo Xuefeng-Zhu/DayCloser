@@ -46,7 +46,7 @@ export function MerchantActivity({ dashboard }: { dashboard: MerchantDashboard }
     onSuccess: () => setConfirmingRefund(undefined),
   });
   return (
-    <div className="order-3 grid gap-4 @min-[58rem]/daycloser:order-none">
+    <div className="order-3 grid min-w-0 gap-4 @min-[58rem]/daycloser:order-none">
       {dashboard.refunds.length > 0 && (
         <Card className="border border-border p-4">
           <section aria-labelledby="dc-refunds-title">

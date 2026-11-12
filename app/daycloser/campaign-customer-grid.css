@@ -1,0 +1,37 @@
+.daycloser-campaign-customer-grid .b-grid {
+  color-scheme: light;
+  font-family: var(--font-sans);
+  font-size: 0.875rem;
+  --b-grid-background: hsl(var(--card));
+  --b-widget-border-color: hsl(var(--border));
+  --b-grid-header-background: hsl(var(--muted));
+  --b-grid-header-color: hsl(var(--foreground));
+  --b-grid-header-border-color: hsl(var(--border));
+  --b-grid-header-font-weight: 600;
+  --b-grid-cell-background: hsl(var(--card));
+  --b-grid-cell-color: hsl(var(--foreground));
+  --b-grid-cell-selected-color: hsl(var(--foreground));
+  --b-grid-cell-hover-background: hsl(var(--muted));
+  --b-grid-cell-selected-background: hsl(var(--accent));
+  --b-grid-cell-hover-selected-background: hsl(var(--accent));
+  --b-grid-cell-focused-outline-color: hsl(var(--ring));
+  --b-grid-cell-border-color: hsl(var(--border));
+  --b-grid-row-border-color: hsl(var(--border));
+  --b-grid-cell-padding-inline: 0.75rem;
+}
+
+.dark .daycloser-campaign-customer-grid .b-grid {
+  color-scheme: dark;
+}
+
+.daycloser-campaign-customer-grid .b-grid-cell.b-auto-height {
+  align-items: flex-start;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+  white-space: pre-line;
+  --b-grid-cell-auto-height-padding-block: 0.625rem;
+}
+
+.daycloser-campaign-customer-grid .dc-campaign-customer-name {
+  font-weight: 600;
+}

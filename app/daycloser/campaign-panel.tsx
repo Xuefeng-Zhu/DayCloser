@@ -56,13 +56,15 @@ export function CampaignPanel({
   conversations,
   timezone,
   headingRef,
+  mode = "opening",
 }: {
   opening: Opening | undefined;
   photographer: string | undefined;
   campaign: Campaign | undefined;
   conversations: MerchantConversation[];
   timezone: string;
-  headingRef: Ref<HTMLHeadingElement>;
+  headingRef?: Ref<HTMLHeadingElement>;
+  mode?: "opening" | "campaign";
 }) {
   const propose = useActionMutation("propose-campaign");
   const approve = useActionMutation("approve-campaign");
@@ -82,7 +84,7 @@ export function CampaignPanel({
             ref={headingRef}
             tabIndex={-1}
           >
-            Sell an opening
+            {mode === "campaign" ? "Campaign details" : "Sell an opening"}
           </h2>
           {campaign && (
             <span className="rounded-md bg-muted px-2 py-1 text-xs font-medium text-foreground">
@@ -102,7 +104,9 @@ export function CampaignPanel({
           </div>
         ) : (
           <p className="text-sm text-muted-foreground">
-            Select an opening in the schedule to prepare a campaign.
+            {mode === "campaign"
+              ? "Select a campaign to view its policy and outreach."
+              : "Select an opening in the schedule to prepare a campaign."}
           </p>
         )}
 

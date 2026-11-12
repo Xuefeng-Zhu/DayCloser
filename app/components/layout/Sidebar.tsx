@@ -14,12 +14,14 @@ import { OrgSwitcher } from "@agent-native/toolkit/app/org";
 import { openCommandMenu } from "@agent-native/toolkit/app/shared";
 import { AgentNativeIcon } from "@agent-native/toolkit/app/shared/AgentNativeIcon";
 import {
-  IconEdit,
   IconCalendarEvent,
+  IconEdit,
+  IconLayoutKanban,
   IconLayoutSidebarLeftCollapse,
   IconLayoutSidebarLeftExpand,
   IconLoader2,
   IconSearch,
+  IconUsers,
 } from "@tabler/icons-react";
 import { useEffect, useRef, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router";
@@ -30,6 +32,10 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import {
+  DAYCLOSER_CAMPAIGNS_PATH,
+  DAYCLOSER_CUSTOMERS_PATH,
+} from "@/daycloser/paths";
 import { APP_TITLE } from "@/lib/app-config";
 import { chatThreadPath, HOME_PATH, threadIdFromPath } from "@/lib/chat-paths";
 import { cn } from "@/lib/utils";
@@ -117,15 +123,24 @@ function persistActiveThreadId(threadId: string) {
   } catch {}
 }
 
-function HomeNavLink({ collapsed }: { collapsed: boolean }) {
-  const t = useT();
-  const location = useLocation();
-  const active = location.pathname === HOME_PATH;
+function WorkspaceNavLink({
+  collapsed,
+  to,
+  label,
+  icon: Icon,
+}: {
+  collapsed: boolean;
+  to: string;
+  label: string;
+  icon: typeof IconCalendarEvent;
+}) {
+  const { pathname } = useLocation();
+  const active = pathname.replace(/\/$/, "") === to;
   const link = (
     <Link
-      to={HOME_PATH}
+      to={to}
       aria-current={active ? "page" : undefined}
-      aria-label={collapsed ? t("navigation.home") : undefined}
+      aria-label={collapsed ? label : undefined}
       className={cn(
         "flex items-center text-sidebar-accent-foreground transition-colors hover:bg-sidebar-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring",
         active && "bg-sidebar-accent",
@@ -134,10 +149,8 @@ function HomeNavLink({ collapsed }: { collapsed: boolean }) {
           : "h-8 w-full gap-3 rounded-lg px-3 text-sm font-medium",
       )}
     >
-      <IconCalendarEvent className="size-4 shrink-0" strokeWidth={1.8} />
-      <span className={collapsed ? "sr-only" : "truncate"}>
-        {t("navigation.home")}
-      </span>
+      <Icon className="size-4 shrink-0" strokeWidth={1.8} aria-hidden="true" />
+      <span className={collapsed ? "sr-only" : "truncate"}>{label}</span>
     </Link>
   );
 
@@ -145,7 +158,7 @@ function HomeNavLink({ collapsed }: { collapsed: boolean }) {
     return (
       <Tooltip>
         <TooltipTrigger asChild>{link}</TooltipTrigger>
-        <TooltipContent side="right">{t("navigation.home")}</TooltipContent>
+        <TooltipContent side="right">{label}</TooltipContent>
       </Tooltip>
     );
   }
@@ -407,7 +420,24 @@ export function Sidebar({
           collapsed ? "items-center gap-1 px-1 py-2" : "pt-1",
         )}
       >
-        <HomeNavLink collapsed={collapsed} />
+        <WorkspaceNavLink
+          collapsed={collapsed}
+          to={HOME_PATH}
+          label={t("navigation.home")}
+          icon={IconCalendarEvent}
+        />
+        <WorkspaceNavLink
+          collapsed={collapsed}
+          to={DAYCLOSER_CAMPAIGNS_PATH}
+          label="Campaigns"
+          icon={IconLayoutKanban}
+        />
+        <WorkspaceNavLink
+          collapsed={collapsed}
+          to={DAYCLOSER_CUSTOMERS_PATH}
+          label="Customers"
+          icon={IconUsers}
+        />
         <ChatThreadsSection collapsed={collapsed} />
       </nav>
 

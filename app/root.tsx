@@ -23,6 +23,7 @@ import type { LinksFunction } from "react-router";
 
 import { Layout as AppLayout } from "@/components/layout/Layout";
 import { AppToolkitProvider } from "@/components/ui/toolkit-provider";
+import { dayCloserSectionForPath } from "@/daycloser/paths";
 import { useNavigationState } from "@/hooks/use-navigation-state";
 import { APP_TITLE } from "@/lib/app-config";
 import {
@@ -99,11 +100,11 @@ function DbSyncSetup() {
   useDbSync({
     queryClient: qc,
     ignoreSource: TAB_ID,
-    ...(pathname === "/daycloser-merchant"
+    ...(dayCloserSectionForPath(pathname)
       ? {
           realtime: {
             reason:
-              "Customer replies and PayPal changes update the studio schedule",
+              "Campaign, customer, and payment updates change the merchant workspace",
           },
         }
       : {}),

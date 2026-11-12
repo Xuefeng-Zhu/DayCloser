@@ -1,34 +1,51 @@
 import { setClientAppState, useActionQuery } from "@agent-native/core/client/hooks";
 import { useSetPageTitle } from "@agent-native/toolkit/app-shell/header-actions";
 import type { MerchantDashboard } from "@shared/daycloser";
-import { IconCalendarEvent } from "@tabler/icons-react";
-import { useRef, useState } from "react";
+import { useState } from "react";
+import type { ComponentProps } from "react";
+import { Outlet, useLocation, useOutletContext } from "react-router";
 
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { CampaignBoard } from "@/daycloser/campaign-board";
-import { CampaignPanel } from "@/daycloser/campaign-panel";
-import { dateLabel, time } from "@/daycloser/format";
-import { MerchantActivity, MerchantTotals } from "@/daycloser/merchant-summary";
-import { Scheduler } from "@/daycloser/scheduler";
-import { StudioCalendar } from "@/daycloser/studio-calendar";
+import type { CampaignPanel } from "@/daycloser/campaign-panel";
+import { time } from "@/daycloser/format";
+import { dayCloserSectionForPath } from "@/daycloser/paths";
 
-import "@/daycloser/merchant-schedule.css";
+type ScheduleView = "timeline" | "calendar";
 
-export const meta = () => [{ title: "Studio schedule · DayCloser" }];
+const workspaceTitles = {
+  schedule: "Studio schedule",
+  campaigns: "Campaigns",
+  customers: "Customers",
+};
+
+type MerchantWorkspaceContext = {
+  dashboard: MerchantDashboard;
+  scheduleView: ScheduleView;
+  setScheduleView: (view: ScheduleView) => void;
+  selectedOpeningId: string | null;
+  selectOpening: (openingId: string) => void;
+  selectCampaign: (campaignId: string) => void;
+  campaignPanel: Omit<ComponentProps<typeof CampaignPanel>, "headingRef" | "mode">;
+};
+
+export function useMerchantWorkspace() {
+  return useOutletContext<MerchantWorkspaceContext>();
+}
 
 export default function MerchantWorkspace() {
   const dashboardQuery = useActionQuery("get-daycloser-dashboard", {});
-  const [view, setView] = useState<"timeline" | "calendar">("timeline");
+  const dashboard: MerchantDashboard | undefined = dashboardQuery.data;
+  const [scheduleView, setScheduleView] = useState<ScheduleView>("timeline");
   const [selection, setSelection] = useState<{
     openingId: string;
     campaignId: string | undefined;
   }>();
-  const campaignHeading = useRef<HTMLHeadingElement>(null);
   const selectedOpeningId = selection?.openingId ?? null;
-  const dashboard: MerchantDashboard | undefined = dashboardQuery.data;
-  useSetPageTitle("Studio schedule");
+  const section = dayCloserSectionForPath(useLocation().pathname) ?? "schedule";
+  const title = workspaceTitles[section];
+  useSetPageTitle(title);
 
   function selectOpening(openingId: string, campaignId?: string) {
     if (!dashboard) return;
@@ -58,17 +75,7 @@ export default function MerchantWorkspace() {
 
   function selectCampaign(campaignId: string) {
     const campaign = dashboard?.campaigns.find(({ id }) => id === campaignId);
-    if (!campaign) return;
-    selectOpening(campaign.policy.opening.id, campaignId);
-    requestAnimationFrame(() => {
-      const heading = campaignHeading.current;
-      if (!heading) return;
-      const { top, bottom } = heading.getBoundingClientRect();
-      if (top < 48 || bottom > window.innerHeight) {
-        heading.scrollIntoView({ block: "start" });
-        heading.focus({ preventScroll: true });
-      }
-    });
+    if (campaign) selectOpening(campaign.policy.opening.id, campaignId);
   }
 
   const selectedCampaign = dashboard?.campaigns.find(({ id, policy }) =>
@@ -81,94 +88,57 @@ export default function MerchantWorkspace() {
   const conversations =
     dashboard?.conversations.filter(({ campaignId }) => campaignId === selectedCampaign?.id) ?? [];
 
-  const ScheduleView = view === "calendar" ? StudioCalendar : Scheduler;
-
   return (
     <div className="@container/daycloser min-h-full bg-background font-sans text-foreground">
       <section
         className="mx-auto flex max-w-[94rem] flex-col gap-5 px-4 py-5 @min-[58rem]/daycloser:px-6"
-        aria-labelledby="dc-schedule-title"
+        aria-labelledby="dc-merchant-title"
       >
-        <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-2">
-          <h1 id="dc-schedule-title" className="text-xl font-semibold tracking-tight">
-            {dashboard?.studio.name ?? "Studio schedule"}
-          </h1>
-          {dashboard && (
-            <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground">
-              <time className="flex items-center gap-2" dateTime={dashboard.studio.demoDate}>
-                <IconCalendarEvent size={16} stroke={1.6} aria-hidden="true" />
-                {dateLabel(dashboard.studio.demoDate)}
-              </time>
-              <span>{dashboard.studio.timezone}</span>
-              <div
-                role="group"
-                aria-label="Studio schedule view"
-                className="flex rounded-md border border-border p-0.5"
-              >
-                {(["timeline", "calendar"] as const).map((option) => (
-                  <Button
-                    key={option}
-                    type="button"
-                    size="sm"
-                    variant={view === option ? "secondary" : "ghost"}
-                    aria-pressed={view === option}
-                    className="capitalize"
-                    onClick={() => setView(option)}
-                  >
-                    {option}
-                  </Button>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
         {dashboard ? (
-          <>
-            <MerchantTotals totals={dashboard.totals} />
-            <div className="grid min-w-0 gap-4 @min-[58rem]/daycloser:grid-cols-[minmax(0,1fr)_18rem]">
-              <div className="grid min-w-0 content-start gap-4 @max-[58rem]/daycloser:contents">
-                <ScheduleView
-                  dashboard={dashboard}
-                  selectedOpeningId={selectedOpeningId}
-                  onSelect={selectOpening}
-                />
-                <CampaignBoard
-                  dashboard={dashboard}
-                  selectedCampaignId={selectedCampaign?.id}
-                  onSelect={selectCampaign}
-                />
-                <MerchantActivity dashboard={dashboard} />
-              </div>
-              <CampaignPanel
-                opening={opening}
-                photographer={photographer?.name}
-                campaign={selectedCampaign}
-                conversations={conversations}
-                timezone={dashboard.studio.timezone}
-                headingRef={campaignHeading}
-              />
-            </div>
-          </>
-        ) : dashboardQuery.isError ? (
-          <Card
-            className="flex flex-wrap items-center justify-between gap-3 border border-border px-4 py-3 text-sm"
-            role="alert"
-          >
-            <p>The studio schedule could not be loaded.</p>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => void dashboardQuery.refetch()}
-            >
-              Try again
-            </Button>
-          </Card>
+          <Outlet
+            context={{
+              dashboard,
+              scheduleView,
+              setScheduleView,
+              selectedOpeningId,
+              selectOpening,
+              selectCampaign,
+              campaignPanel: {
+                opening,
+                photographer: photographer?.name,
+                campaign: selectedCampaign,
+                conversations,
+                timezone: dashboard.studio.timezone,
+              },
+            } satisfies MerchantWorkspaceContext}
+          />
         ) : (
-          <div className="grid gap-4" role="status" aria-label="Loading your studio schedule">
-            <Skeleton className="h-20 w-full" />
-            <Skeleton className="h-64 w-full" />
-          </div>
+          <>
+            <h1 id="dc-merchant-title" className="text-xl font-semibold tracking-tight">
+              {title}
+            </h1>
+            {dashboardQuery.isError ? (
+              <Card
+                className="flex flex-wrap items-center justify-between gap-3 border border-border px-4 py-3 text-sm"
+                role="alert"
+              >
+                <p>Could not load {title.toLowerCase()}.</p>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => void dashboardQuery.refetch()}
+                >
+                  Try again
+                </Button>
+              </Card>
+            ) : (
+              <div className="grid gap-4" role="status" aria-label={`Loading ${title.toLowerCase()}`}>
+                <Skeleton className="h-20 w-full" />
+                <Skeleton className="h-64 w-full" />
+              </div>
+            )}
+          </>
         )}
       </section>
     </div>

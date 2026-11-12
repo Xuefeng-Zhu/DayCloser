@@ -13,6 +13,7 @@ export default defineConfig({
   optimizeDeps: {
     include: [
       "@bryntum/calendar-react-enterprise",
+      "@bryntum/grid-react-enterprise",
       "@bryntum/scheduler-react-enterprise",
       "@bryntum/taskboard-react-enterprise",
     ],

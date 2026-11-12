@@ -5,6 +5,11 @@ import {
 import { useAgentRouteState } from "@agent-native/core/client/navigation";
 
 import {
+  DAYCLOSER_CAMPAIGNS_PATH,
+  DAYCLOSER_CUSTOMERS_PATH,
+  dayCloserSectionForPath,
+} from "@/daycloser/paths";
+import {
   chatThreadPath,
   HOME_PATH,
   isChatPathname,
@@ -74,7 +79,9 @@ export function navigationStateForPath(pathname: string): NavigationState {
 
 function viewForPath(pathname: string): string {
   if (isChatPathname(pathname)) return "chat";
-  if (pathname === HOME_PATH) return "home";
+  const dayCloserSection = dayCloserSectionForPath(pathname);
+  if (dayCloserSection)
+    return dayCloserSection === "schedule" ? "home" : dayCloserSection;
   if (pathname.startsWith("/database")) return "database";
   if (pathname.startsWith("/extensions")) return "extensions";
   if (pathname.startsWith("/observability")) return "observability";
@@ -93,6 +100,10 @@ function pathForView(view?: string): string {
       return NEW_CHAT_PATH;
     case "home":
       return HOME_PATH;
+    case "campaigns":
+      return DAYCLOSER_CAMPAIGNS_PATH;
+    case "customers":
+      return DAYCLOSER_CUSTOMERS_PATH;
     case "database":
       return "/database";
     case "extensions":

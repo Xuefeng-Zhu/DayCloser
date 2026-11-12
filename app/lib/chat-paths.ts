@@ -7,7 +7,12 @@ import {
   type Reference,
 } from "@agent-native/toolkit/composer";
 
-export const HOME_PATH = "/daycloser-merchant";
+import {
+  DAYCLOSER_SCHEDULE_PATH,
+  dayCloserSectionForPath,
+} from "@/daycloser/paths";
+
+export const HOME_PATH = DAYCLOSER_SCHEDULE_PATH;
 export const NEW_CHAT_PATH = "/chat";
 
 const FAILED_CHAT_HANDOFF_PREFIX = "agent-native.chat.failed-handoff:";
@@ -50,7 +55,7 @@ export function skeletonLayoutForPath(
     pathname.length > 1 && pathname.endsWith("/")
       ? pathname.slice(0, -1)
       : pathname;
-  if (path === HOME_PATH) return "home";
+  if (dayCloserSectionForPath(path)) return "home";
   if (path === NEW_CHAT_PATH) return "assistant-new";
   return "assistant";
 }

@@ -1,4 +1,4 @@
-import type { EventModelConfig } from "@bryntum/scheduler-enterprise";
+import type { EventBufferConfig, EventModelConfig } from "@bryntum/scheduler-enterprise";
 import { BryntumScheduler } from "@bryntum/scheduler-react-enterprise";
 import type { BryntumSchedulerProps } from "@bryntum/scheduler-react-enterprise";
 import type { MerchantDashboard } from "@shared/daycloser";
@@ -21,6 +21,7 @@ export type SchedulerProps = {
 
 const appearance: BryntumSchedulerProps = {
   ariaLabel: "Photographer schedule",
+  tier: "enterprise",
   viewPreset: {
     base: "hourAndDay",
     tickWidth: 82,
@@ -40,6 +41,11 @@ const appearance: BryntumSchedulerProps = {
   zoomOnTimeAxisDoubleClick: false,
   eventDragFeature: false,
   eventDragCreateFeature: false,
+  eventBufferFeature: {
+    bufferIsUnavailableTime: true,
+    showDuration: false,
+    tooltipTemplate: ({ duration }) => `${duration.toString()} buffer`,
+  } satisfies EventBufferConfig,
   eventResizeFeature: false,
   eventEditFeature: false,
   eventMenuFeature: false,
@@ -88,6 +94,8 @@ function scheduleEvents(
       opening.id === selectedOpeningId ? "dc-event-opening dc-event-selected" : "dc-event-opening",
   }));
   for (const appointment of dashboard.appointments) {
+    const bufferMinutes =
+      (Date.parse(appointment.endAt) - Date.parse(appointment.shootingEndAt)) / 60_000;
     events.push({
       id: `session:${appointment.id}`,
       resourceId: appointment.resourceId,
@@ -96,17 +104,10 @@ function scheduleEvents(
       name:
         appointment.status === "appointment" ? appointment.name : statusNames[appointment.status],
       cls: `dc-event-${appointment.status}`,
+      ...(bufferMinutes > 0 && {
+        postamble: `${bufferMinutes} ${bufferMinutes === 1 ? "minute" : "minutes"}`,
+      }),
     });
-    if (appointment.shootingEndAt < appointment.endAt) {
-      events.push({
-        id: `buffer:${appointment.id}`,
-        resourceId: appointment.resourceId,
-        startDate: appointment.shootingEndAt,
-        endDate: appointment.endAt,
-        name: "Buffer",
-        cls: "dc-event-buffer",
-      });
-    }
   }
   return events;
 }
@@ -123,12 +124,15 @@ export default function Scheduler({ dashboard, selectedOpeningId, onSelect }: Sc
     () => scheduleEvents(dashboard, selectedOpeningId),
     [dashboard, selectedOpeningId],
   );
-  const eventTimes = useMemo(
+  const eventLabels = useMemo(
     () =>
       new Map(
         events.map((event) => [
           event.id,
-          `${time(String(event.startDate), timezone)}–${time(String(event.endDate), timezone)}`,
+          {
+            timeRange: `${time(String(event.startDate), timezone)}–${time(String(event.endDate), timezone)}`,
+            buffer: event.postamble ? `${event.postamble} buffer` : undefined,
+          },
         ]),
       ),
     [events, timezone],
@@ -172,15 +176,17 @@ export default function Scheduler({ dashboard, selectedOpeningId, onSelect }: Sc
         resources={schedulerResources}
         events={events}
         eventRenderer={({ eventRecord, renderData }) => {
-          const windowLabel = eventTimes.get(eventRecord.id);
-          renderData.ariaLabel = [eventRecord.name, windowLabel].filter(Boolean).join(", ");
+          const label = eventLabels.get(eventRecord.id);
+          renderData.ariaLabel = [eventRecord.name, label?.timeRange, label?.buffer]
+            .filter(Boolean)
+            .join(", ");
           return {
             tag: "span",
             className: "dc-event-content",
             title: renderData.ariaLabel,
             children: [
               { tag: "strong", text: eventRecord.name },
-              { tag: "small", text: windowLabel ?? "" },
+              { tag: "small", text: label?.timeRange ?? "" },
             ],
           };
         }}

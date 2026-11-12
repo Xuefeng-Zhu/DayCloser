@@ -1,0 +1,17 @@
+.daycloser-customers-grid .b-grid {
+  color-scheme: light;
+  font-family: var(--font-sans);
+  font-size: 0.875rem;
+  --b-widget-border-color: hsl(var(--border));
+  --b-grid-header-background: hsl(var(--muted));
+  --b-grid-header-color: hsl(var(--muted-foreground));
+  --b-grid-header-border-color: hsl(var(--border));
+  --b-grid-cell-background: hsl(var(--card));
+  --b-grid-cell-color: hsl(var(--foreground));
+  --b-grid-row-border-color: hsl(var(--border));
+  --b-primary: hsl(var(--ring));
+}
+
+.dark .daycloser-customers-grid .b-grid {
+  color-scheme: dark;
+}

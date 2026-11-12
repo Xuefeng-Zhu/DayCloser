@@ -66,7 +66,7 @@ export default function CampaignBoardClient({
   }, [campaigns, resources, selectedCampaignId, timezone]);
 
   return (
-    <div className="min-w-0 border-t border-border">
+    <div className="min-w-0">
       <BryntumTaskBoard
         {...boardOptions}
         tasks={tasks}

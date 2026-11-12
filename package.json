@@ -32,6 +32,7 @@
     "@bryntum/calendar-react-enterprise": "8.0.0",
     "@bryntum/core-enterprise": "8.0.0",
     "@bryntum/grid-enterprise": "8.0.0",
+    "@bryntum/grid-react-enterprise": "8.0.0",
     "@bryntum/scheduler-enterprise": "8.0.0",
     "@bryntum/scheduler-react-enterprise": "8.0.0",
     "@bryntum/taskboard-enterprise": "8.0.0",

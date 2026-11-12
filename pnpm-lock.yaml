@@ -57,6 +57,9 @@ importers:
       '@bryntum/grid-enterprise':
         specifier: 8.0.0
         version: 8.0.0
+      '@bryntum/grid-react-enterprise':
+        specifier: 8.0.0
+        version: 8.0.0
       '@bryntum/scheduler-enterprise':
         specifier: 8.0.0
         version: 8.0.0

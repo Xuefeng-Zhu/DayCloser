@@ -34,8 +34,8 @@ Before building common workspace or agent UI, read `agent-native-toolkit`; for s
 
 ## DayCloser
 
-The merchant schedule is at `/daycloser-merchant`. `selection` stores the opening and resource IDs and UTC bounds for `view-screen`. Customer inbox links open `/inbox` with a signed, conversation-scoped capability. PostgreSQL is authoritative for studio capacity and offers.
+The merchant schedule is at `/daycloser-merchant`. The sidebar opens the campaign board and activity feed at `/daycloser-merchant/campaigns` and the customer directory at `/daycloser-merchant/customers`. `selection` stores the opening and resource IDs and UTC bounds for `view-screen`. Customer inbox links open `/inbox` with a signed, conversation-scoped capability. PostgreSQL is authoritative for studio capacity and offers.
 
-The merchant proposes and approves through the campaign panel. The background agent may read feasible options and deliver a note using only its claimed job's sales actions. Price, buffer, contact eligibility and campaign limits are checked server-side. The customer accepts via their scoped inbox. Verify completed deposits through the PayPal adapter and reservation finalizer.
+The merchant proposes and approves through the campaign panel. Selecting a campaign opens its customer grid with audience, reply, offer, and checkout details from the merchant dashboard. The background agent may read feasible options and deliver a note using only its claimed job's sales actions. Price, buffer, contact eligibility and campaign limits are checked server-side. The customer accepts via their scoped inbox. Verify completed deposits through the PayPal adapter and reservation finalizer.
 
 For release verification follow `docs/build-brief.md` and `docs/progress.md`. Run the PostgreSQL integration tests against a disposable database. Keep the worker on a persistent Node host.

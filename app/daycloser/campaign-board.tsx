@@ -11,21 +11,18 @@ export function CampaignBoard(props: CampaignBoardProps) {
   useEffect(() => setMounted(true), []);
 
   const loading = (
-    <div className="border-t border-border p-3" role="status" aria-label="Loading campaign board">
+    <div className="p-3" role="status" aria-label="Loading campaign board">
       <Skeleton className="h-32 w-full" />
     </div>
   );
 
   return (
     <section
-      className="daycloser-campaign-board order-3 min-w-0 overflow-hidden rounded-lg border border-border bg-card @min-[58rem]/daycloser:order-none"
-      aria-labelledby="dc-campaign-board-title"
+      className="daycloser-campaign-board min-w-0 overflow-hidden rounded-lg border border-border bg-card"
+      aria-label="Campaign board"
     >
-      <h2 id="dc-campaign-board-title" className="px-4 py-3 text-sm font-semibold">
-        Campaigns
-      </h2>
       {props.dashboard.campaigns.length === 0 ? (
-        <p className="border-t border-border px-4 py-3 text-sm text-muted-foreground">
+        <p className="px-4 py-3 text-sm text-muted-foreground">
           No campaigns yet. Select an opening in the schedule to start one.
         </p>
       ) : mounted ? (

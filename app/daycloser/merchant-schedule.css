@@ -131,13 +131,24 @@
   box-shadow: inset 0 0 0 1px var(--schedule-event-border);
 }
 
-.daycloser-scheduler :is(.dc-event-buffer, .dc-swatch-buffer) {
-  border-style: dashed;
+.daycloser-scheduler .dc-swatch-buffer,
+.daycloser-scheduler
+  .b-sch-horizontal
+  .b-sch-event-wrap
+  .b-sch-event-buffer-after:not(.b-buffer-thin) {
+  --schedule-event-border: hsl(var(--muted-foreground) / 0.6);
   --schedule-event-surface: hsl(var(--background));
+  border: 1px dashed var(--schedule-event-border);
+  background: var(--schedule-event-surface);
 }
 
-.daycloser-scheduler .dc-event-buffer .dc-event-content {
-  display: none;
+.daycloser-scheduler
+  .b-sch-horizontal
+  .b-sch-event-wrap
+  .b-sch-event-buffer-after:not(.b-buffer-thin) {
+  align-self: center;
+  box-sizing: border-box;
+  height: 65%;
 }
 
 .daycloser-scheduler .dc-swatch {
