@@ -180,6 +180,16 @@ export default function Root() {
   // The path, not the visitor, picks the shell, so the SSR shell stays one
   // cached page per URL.
   const { pathname } = useLocation();
+  // The customer's invitation page is public and has no app chrome.
+  if (pathname.startsWith("/offer/")) {
+    return (
+      <AppToolkitProvider>
+        <AppProviders queryClient={queryClient} isPublicPath i18n={{ catalog: i18nCatalog }}>
+          <Outlet />
+        </AppProviders>
+      </AppToolkitProvider>
+    );
+  }
   return (
     <AppToolkitProvider>
       <AppProviders

@@ -64,7 +64,7 @@ const messages = {
     docsGettingStarted: "Getting started",
     docsKeyConcepts: "Key concepts",
     docsTitle: "Documentation",
-    title: "Get started",
+    title: "Studio",
   },
   navigation: {
     chat: "Chat",
@@ -72,7 +72,7 @@ const messages = {
     database: "Database",
     expandSidebar: "Expand sidebar",
     extensions: "Extensions",
-    home: "Home",
+    home: "Studio",
     navigation: "Navigation",
     navigationDescription: "Main navigation",
     observability: "Observability",

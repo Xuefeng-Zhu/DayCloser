@@ -1,33 +1,52 @@
-# Chat
+# DayCloser
 
-The minimal agent-native starter app — a clean, ChatGPT-style shell with chat at
-the center, durable threads, standard app navigation, auth, live sync, and
-actions. Start here when you want a real browser app to build on without
-committing to a domain template.
+**Turn open hours into paid bookings.**
 
-**Live app: [chat.agent-native.com](https://chat.agent-native.com?utm_source=github&utm_medium=referral&utm_content=chat-readme)**
+DayCloser is an outbound sales agent for appointment businesses. It finds unused capacity on the studio calendar, picks customers who opted in to hear about openings, sends each a personalised invitation with a concrete offer, adapts the offer when the customer replies, collects a deposit with PayPal, and confirms the booking only when the slot is still feasible.
 
-Chat is the basic agent-native app starting point. It gives you the app-agent
-loop wired end to end and one example action, so you can add your own UI, data,
-and actions on top.
+The first version is built for one independent photography studio, Lumen & Co. Photography: two photographers, two predefined services and eight synthetic contacts (two of whom did not opt in and are never contacted).
 
-## Features
+## What happens in the demo
 
-- ChatGPT-style shell with a threads list and durable chat history.
-- Auth, live sync, and application state wired out of the box.
-- The action surface the agent and UI share, plus one example action to copy.
-- A minimal, brandable base for any domain app.
+1. The merchant opens **Studio** and sees a Bryntum Scheduler timeline of both photographers over three days. Green dashed blocks are openings: never-booked time, or time freed by a cancellation (right-click any booking → *Customer cancelled* to create one live).
+2. Click an opening → **Sell this opening**. The Agent-Native agent ranks opted-in contacts (service fit, photographer history, preferred day and time, time since last session), then sends the top two a personal invitation with a feasible offer.
+3. Open a customer's **Customer view** link. The customer never started this conversation. They reply in their own words, e.g. *"Thursday's tricky, could we do Saturday morning instead?"*
+4. The reply fires a server-side event. The agent reads it, calls `find-slots`, and replaces the offer with v2 (different day, time, photographer or the other service), explaining the change. Price and deposit always come from the service; there are no discounts and no invented services.
+5. The customer pays the fixed deposit with **PayPal** (sandbox, Orders v2). The slot is held during checkout, re-checked at capture, and becomes a confirmed booking on the timeline. Every other invitation for that opening is closed politely.
 
-## Develop locally
+## Technology, each with one job
 
-Scaffold your own copy and run it:
+| Layer | Responsibility |
+| --- | --- |
+| **Builder.io Agent-Native** | App framework, the agent runtime and chat, shared typed actions (`actions/*.ts`) used by the agent, the UI and HTTP alike, SQL persistence and migrations, conversation persistence, UI context, and the server-side automation that runs the agent when a customer replies (`daycloser.customer.replied` event → `jobs/daycloser-adapt-offer.md`). |
+| **Bryntum Scheduler** | The merchant's interactive resource timeline: photographers as resources, bookings, holds, cancellations and sellable openings as events; drag to move a booking (overlaps rejected server-side), context menu to cancel or sell. |
+| **PayPal sandbox** | Orders v2 checkout and capture of the booking deposit, with idempotency keys (`PayPal-Request-Id`), a checkout hold, and capture-time feasibility re-check. |
+
+## Shared actions
+
+`get-studio`, `list-schedule`, `list-openings`, `sell-opening`, `rank-contacts`, `find-slots`, `send-invitation`, `get-campaign`, `list-campaigns`, `revise-offer`, `reply-to-customer`, `list-pending-replies`, `move-booking`, `cancel-booking`, `reset-demo`.
+
+One feasibility rule (`checkSlot` in `server/daycloser/core.ts`) guards every offer, move, checkout and capture: the photographer offers the service, the slot is inside studio hours on a 15-minute boundary, at least 30 minutes out, and overlaps no confirmed booking or live checkout hold.
+
+## Run it
 
 ```bash
-npx --yes @agent-native/core@latest create my-app --standalone --template chat
-cd my-app
-corepack enable
 pnpm install
+cp .env.example .env   # set OPENROUTER_API_KEY (or another model key), PAYPAL_CLIENT_ID, PAYPAL_CLIENT_SECRET
+# local only: AUTH_DISABLED=true skips sign-in
 pnpm dev
 ```
 
-Full docs: [agent-native.com/docs/template-chat](https://agent-native.com/docs/template-chat?utm_source=github&utm_medium=referral&utm_content=chat-readme).
+Open `/home` (Studio). Data is stored in local PGlite (`data/`) or Postgres via `DATABASE_URL`. Use **Reset demo** to reseed.
+
+Bryntum Scheduler is installed from the public 45-day trial package (`@bryntum/scheduler@npm:@bryntum/scheduler-trial`).
+
+PayPal: create a sandbox REST app at developer.paypal.com and pay with a sandbox *personal* account.
+
+## Scope kept out of v1
+
+Multi-business onboarding, CRM imports, calendar sync, SMS, voice, subscriptions, discounts, invented services, multiple agents, and analytics.
+
+## License
+
+MIT

@@ -1,25 +1,18 @@
-import HomePage from "@/components/home/HomePage";
-import { APP_TITLE } from "@/lib/app-config";
+import Studio from "@/components/daycloser/Studio";
 
-const SEO_TITLE = `${APP_TITLE} - Open Source AI app starter with actions`;
+const SEO_TITLE = "DayCloser — Turn open hours into paid bookings";
 const SEO_DESCRIPTION =
-  "Open Source starter for agent-native apps with durable chat, shared actions, UI state, tools, and a backend your agent can extend.";
+  "An outbound sales agent for appointment businesses: finds unused capacity, invites opted-in customers, adapts the offer to their reply and collects a PayPal deposit.";
 
 export function meta() {
   return [
     { title: SEO_TITLE },
-    {
-      name: "description",
-      content: SEO_DESCRIPTION,
-    },
+    { name: "description", content: SEO_DESCRIPTION },
     { property: "og:title", content: SEO_TITLE },
     { property: "og:description", content: SEO_DESCRIPTION },
-    { name: "twitter:card", content: "summary" },
-    { name: "twitter:title", content: SEO_TITLE },
-    { name: "twitter:description", content: SEO_DESCRIPTION },
   ];
 }
 
 export default function HomeRoute() {
-  return <HomePage />;
+  return <Studio />;
 }

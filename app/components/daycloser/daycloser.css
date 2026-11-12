@@ -1,0 +1,21 @@
+.dc-logo { color: #0f9f6e; font-size: 1.3rem; line-height: 1; }
+.dc-cta { background: #0f9f6e; color: white; border-radius: 0.6rem; padding: 0.55rem 0.9rem; font-weight: 600; font-size: 0.9rem; }
+.dc-cta:hover { background: #0c8a5f; }
+.dc-cta:disabled { opacity: 0.6; }
+.dc-legend { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin: 0 4px 0 10px; vertical-align: -1px; }
+.dc-l-open { border: 2px dashed #16a34a; }
+.dc-l-cancel { border: 2px dashed #16a34a; background: repeating-linear-gradient(45deg, #dcfce7, #dcfce7 2px, transparent 2px, transparent 4px); }
+.dc-l-book { background: #3b82f6; }
+.dc-l-dc { background: #8b5cf6; }
+.dc-l-held { background: #f97316; }
+.dc-scheduler .b-sch-event .dc-ev { display: flex; flex-direction: column; line-height: 1.2; overflow: hidden; }
+.dc-scheduler .b-sch-event .dc-ev span { font-size: 0.72em; opacity: 0.8; white-space: nowrap; }
+.dc-scheduler .dc-opening .b-sch-event { cursor: pointer; }
+.dc-scheduler .dc-selected .b-sch-event { outline: 3px solid #0f9f6e; outline-offset: 1px; }
+.dc-scheduler .dc-cancelled .b-sch-event { opacity: 0.55; text-decoration: line-through; }
+.dc-res-name { font-weight: 600; }
+.dc-res-sub { font-size: 0.75em; opacity: 0.7; }
+@keyframes dcpulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.45; } }
+.dc-pulse { animation: dcpulse 1.2s ease-in-out infinite; }
+.dc-scheduler .dc-opening .b-sch-event { border-style: dashed !important; border-width: 2px !important; }
+.dc-scheduler .b-sch-event .dc-ev b { font-size: 0.8em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
