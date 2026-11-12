@@ -1,4 +1,5 @@
 allowBuilds:
+  paypal: true
   "@bryntum/scheduler-trial": true
   "@bryntum/scheduler-trial-lib": true
   tesseract.js: true

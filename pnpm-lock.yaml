@@ -131,6 +131,9 @@ importers:
       node-pty:
         specifier: ^1.1.0
         version: 1.1.0
+      paypal:
+        specifier: github:context-plugins/paypal-typescript-sdk#main
+        version: https://codeload.github.com/context-plugins/paypal-typescript-sdk/tar.gz/5d0df8a8817e5fdf2e2cd48e68f790ea4730aab2
       postgres:
         specifier: ^3.4.9
         version: 3.4.9
@@ -4608,6 +4611,11 @@ packages:
 
   pathe@2.0.3:
     resolution: {integrity: sha512-WUjGcAqP1gQacoQe+OBJsFA7Ld4DyXuUIjZ5cc75cLHvJ7dtNsTugphxIADwspS+AraAUePCKrSVtPLFj/F88w==}
+
+  paypal@https://codeload.github.com/context-plugins/paypal-typescript-sdk/tar.gz/5d0df8a8817e5fdf2e2cd48e68f790ea4730aab2:
+    resolution: {tarball: https://codeload.github.com/context-plugins/paypal-typescript-sdk/tar.gz/5d0df8a8817e5fdf2e2cd48e68f790ea4730aab2}
+    version: 2.29.0
+    engines: {node: '>=20.3'}
 
   picocolors@1.1.1:
     resolution: {integrity: sha512-xceH2snhtb5M9liqDsmEw56le376mTZkEX/jEb/RxNFyegNul7eNslCXP9FDj/Lcu0X8KEyMceP2ntpaHrDEVA==}
@@ -9781,6 +9789,10 @@ snapshots:
   path-key@3.1.1: {}
 
   pathe@2.0.3: {}
+
+  paypal@https://codeload.github.com/context-plugins/paypal-typescript-sdk/tar.gz/5d0df8a8817e5fdf2e2cd48e68f790ea4730aab2:
+    dependencies:
+      zod: 4.6.7
 
   picocolors@1.1.1: {}
 

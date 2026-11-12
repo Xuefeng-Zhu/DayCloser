@@ -142,6 +142,22 @@ export default runMigrations(
         created_at TEXT NOT NULL
       )`,
     },
+    {
+      version: 10,
+      name: "dc_refunds",
+      sql: `CREATE TABLE IF NOT EXISTS dc_refunds (
+        id TEXT PRIMARY KEY,
+        capture_id TEXT NOT NULL UNIQUE,
+        offer_id TEXT NOT NULL,
+        booking_id TEXT NOT NULL,
+        amount_cents INTEGER NOT NULL,
+        status TEXT NOT NULL DEFAULT 'claimed',
+        paypal_refund_id TEXT NOT NULL DEFAULT '',
+        detail TEXT NOT NULL DEFAULT '',
+        created_at TEXT NOT NULL,
+        updated_at TEXT NOT NULL
+      )`,
+    },
   ],
   { table: "daycloser_migrations" },
 );

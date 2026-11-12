@@ -4,7 +4,7 @@ import { z } from "zod";
 import { cancelBooking } from "../server/daycloser/core.js";
 
 export default defineAction({
-  description: "Cancel a booking (a customer cancelled). The freed time immediately shows as a cancellation opening that DayCloser can sell.",
+  description: "Cancel a booking (a customer cancelled). The freed time immediately shows as a cancellation opening that DayCloser can sell. If DayCloser sold the booking with a PayPal deposit, the deposit is refunded automatically through the PayPal SDK.",
   schema: z.object({ bookingId: z.string() }),
   run: async ({ bookingId }) => cancelBooking(bookingId),
 });

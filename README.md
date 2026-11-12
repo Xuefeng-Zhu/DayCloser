@@ -13,6 +13,7 @@ The first version is built for one independent photography studio, Lumen & Co. P
 3. Open a customer's **Customer view** link. The customer never started this conversation. They reply in their own words, e.g. *"Thursday's tricky, could we do Saturday morning instead?"*
 4. The reply fires a server-side event. The agent reads it, calls `find-slots`, and replaces the offer with v2 (different day, time, photographer or the other service), explaining the change. Price and deposit always come from the service; there are no discounts and no invented services.
 5. The customer pays the fixed deposit with **PayPal** (sandbox, Orders v2). The slot is held during checkout, re-checked at capture, and becomes a confirmed booking on the timeline. Every other invitation for that opening is closed politely.
+6. If the studio later cancels a booking DayCloser sold, the PayPal deposit is **refunded automatically** (Payments v2 refund through the APIMatic-generated PayPal SDK), and the freed time shows up as a new opening the agent can sell again.
 
 ## Technology, each with one job
 
@@ -22,7 +23,16 @@ The first version is built for one independent photography studio, Lumen & Co. P
 | **Bryntum Scheduler** | The merchant's interactive resource timeline: photographers as resources, bookings, holds, cancellations and sellable openings as events; drag to move a booking (overlaps rejected server-side), context menu to cancel or sell. |
 | **Bryntum Grid** | The **Customers** page: every contact with consent, wanted service, preferred days and times, last session, next booking and live DayCloser outreach status; grouped by consent, filter bar, row expander for notes and the current offer. |
 | **Bryntum Calendar** | The **Calendar** page: the same bookings, openings and live offers in day, week, month and agenda views with a photographer filter; clicking an opening opens it in Studio to sell. |
-| **PayPal sandbox** | Orders v2 checkout and capture of the booking deposit, with idempotency keys (`PayPal-Request-Id`), a checkout hold, and capture-time feasibility re-check. |
+| **PayPal sandbox** | Orders v2 checkout and capture of the booking deposit, with idempotency keys (`PayPal-Request-Id`), a checkout hold, and capture-time feasibility re-check. Deposit refunds on cancellation via Payments v2 `refundCapturedPayment`. |
+| **APIMatic Context Plugin for PayPal** | Grounded the coding agent that wrote the refund flow (`server/daycloser/refunds.ts`) in the APIMatic-generated PayPal TypeScript SDK (`paypal`): its SDK map and TypeScript skills gave the exact signatures, error arms and durable-write rules. The contract sheet the plugin requires is [`paypal-plan.md`](paypal-plan.md): a `dc_refunds` claim with `UNIQUE(capture_id)` before the call, the claim id as `PayPal-Request-Id`, and a `getCapturedPayment` re-read when a refund's answer is lost. |
+
+## Built with the APIMatic Context Plugin
+
+```bash
+npx context-plugins install paypal   # installs the PayPal Context Plugin into Claude Code / Cursor / VS Code / Codex
+```
+
+The plugin's `typescript-integrate-paypal` workflow was followed for the refund feature: survey, `paypal-plan.md` contract sheet with no open lookups, then code. The SDK is installed from its source repo (`paypal@github:context-plugins/paypal-typescript-sdk`), as the plugin directs.
 
 ## Shared actions
 

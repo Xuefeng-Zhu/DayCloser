@@ -90,7 +90,7 @@ async function seedIfEmpty() {
 
 export async function resetDemo() {
   const db = getDb();
-  for (const tbl of [t.activity, t.offers, t.messages, t.invitations, t.campaigns, t.bookings, t.contacts, t.services, t.photographers]) {
+  for (const tbl of [t.refunds, t.activity, t.offers, t.messages, t.invitations, t.campaigns, t.bookings, t.contacts, t.services, t.photographers]) {
     await db.delete(tbl);
   }
   await writeSeed();

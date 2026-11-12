@@ -4,6 +4,7 @@ import { and, desc, eq, inArray } from "drizzle-orm";
 import { getDb } from "../db/index.js";
 import * as t from "../db/schema.js";
 import { CLOSE_HOUR, OPEN_HOUR, STEP_MIN, addDaysYmd, fmtSlot, money, partOfDay, studioDate, studioWeekday, studioYmd } from "./time.js";
+import { refundDeposit } from "./refunds.js";
 import { demoStartYmd, ensureSeeded } from "./seed.js";
 
 export const DAYS_SHOWN = 3;
@@ -538,7 +539,15 @@ export async function cancelBooking(bookingId: string) {
   if (!b) throw new Error(`No booking ${bookingId}.`);
   if (b.status === "cancelled") return { ok: true, already: true };
   await db.update(t.bookings).set({ status: "cancelled", cancelledAt: now(), updatedAt: now() }).where(eq(t.bookings.id, b.id));
-  return { ok: true, freed: fmtSlot(b.startAt, b.endAt), customer: b.customerName };
+  // A booking DayCloser sold with a PayPal deposit gets that deposit refunded (APIMatic PayPal SDK).
+  let refund: Awaited<ReturnType<typeof refundDeposit>> = null;
+  let refundError = "";
+  try {
+    refund = await refundDeposit(b.id);
+  } catch (e) {
+    refundError = e instanceof Error ? e.message : String(e);
+  }
+  return { ok: true, freed: fmtSlot(b.startAt, b.endAt), customer: b.customerName, ...(refund ? { refund } : {}), ...(refundError ? { refundError } : {}) };
 }
 
 export async function schedule() {

@@ -91,7 +91,7 @@ export const messages = pgTable("dc_messages", {
   createdAt: text("created_at").notNull(),
 });
 
-/** Concrete, validated offers. A new version supersedes the previous one in the same invitation. status: proposed | superseded | checkout | paid | expired */
+/** Concrete, validated offers. A new version supersedes the previous one in the same invitation. status: proposed | superseded | checkout | paid | expired | refunded */
 export const offers = pgTable("dc_offers", {
   id: text("id").primaryKey(),
   invitationId: text("invitation_id").notNull(),
@@ -118,4 +118,18 @@ export const activity = pgTable("dc_activity", {
   kind: text("kind").notNull(),
   text: text("text").notNull(),
   createdAt: text("created_at").notNull(),
+});
+
+/** One row per PayPal capture we refund: the durable claim taken before calling PayPal. status: claimed | completed | pending | failed | unknown */
+export const refunds = pgTable("dc_refunds", {
+  id: text("id").primaryKey(),
+  captureId: text("capture_id").notNull().unique(),
+  offerId: text("offer_id").notNull(),
+  bookingId: text("booking_id").notNull(),
+  amountCents: integer("amount_cents").notNull(),
+  status: text("status").notNull().default("claimed"),
+  paypalRefundId: text("paypal_refund_id").notNull().default(""),
+  detail: text("detail").notNull().default(""),
+  createdAt: text("created_at").notNull(),
+  updatedAt: text("updated_at").notNull(),
 });
