@@ -7,13 +7,11 @@ import type { KeyboardEvent } from "react";
 
 import { time } from "./format";
 
-import "@bryntum/core-enterprise/fontawesome/css/fontawesome.css";
-import "@bryntum/core-enterprise/fontawesome/css/solid.css";
-import "@bryntum/scheduler-enterprise/scheduler.css";
-import "@bryntum/scheduler-enterprise/svalbard.css";
+import { registerBryntumLicense } from "./bryntum.client";
+import "@bryntum/grid-enterprise/grid.thin.css";
+import "@bryntum/scheduler-enterprise/scheduler.thin.css";
 
-const licenseKey = import.meta.env.VITE_BRYNTUM_LICENSE_KEY?.trim();
-if (licenseKey) globalThis.bryntum.licenseKey = licenseKey;
+registerBryntumLicense();
 
 export type SchedulerProps = {
   dashboard: MerchantDashboard;

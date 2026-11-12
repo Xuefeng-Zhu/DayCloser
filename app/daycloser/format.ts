@@ -1,3 +1,13 @@
+import type { CampaignStatus } from "@shared/daycloser";
+
+export const campaignStatusLabels: Record<CampaignStatus, string> = {
+  proposed: "Needs approval",
+  active: "Active",
+  paused: "Paused",
+  completed: "Completed",
+  expired: "Expired",
+};
+
 export function money(cents: number, currency = "USD") {
   return new Intl.NumberFormat("en-US", {
     style: "currency",

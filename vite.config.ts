@@ -11,7 +11,11 @@ export default defineConfig({
     cssTarget: ["chrome123", "edge123", "firefox120", "safari17.5"],
   },
   optimizeDeps: {
-    include: ["@bryntum/scheduler-react-enterprise"],
+    include: [
+      "@bryntum/calendar-react-enterprise",
+      "@bryntum/scheduler-react-enterprise",
+      "@bryntum/taskboard-react-enterprise",
+    ],
     entries: [
       "app/entry.client.tsx",
       "app/root.tsx",

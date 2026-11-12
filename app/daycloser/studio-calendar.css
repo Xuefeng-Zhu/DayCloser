@@ -1,0 +1,27 @@
+.daycloser-calendar .b-calendar {
+  color-scheme: light;
+  --b-calendar-background: hsl(var(--background));
+  --b-calendar-foreground-color: hsl(var(--foreground));
+  --b-calendar-border-color: hsl(var(--border));
+  --b-calendar-view-desc-color: hsl(var(--foreground));
+  --b-day-resource-calendar-row-border-color: hsl(var(--border));
+  --b-primary: hsl(var(--ring));
+  font-family: var(--font-sans);
+}
+
+.dark .daycloser-calendar .b-calendar {
+  color-scheme: dark;
+}
+
+.daycloser-calendar .dc-calendar-opening {
+  cursor: pointer;
+}
+
+.daycloser-calendar .dc-calendar-selected {
+  outline: 2px solid var(--color-blue-500);
+  outline-offset: -2px;
+}
+
+.daycloser-calendar .dc-calendar-buffer {
+  opacity: 0.75;
+}

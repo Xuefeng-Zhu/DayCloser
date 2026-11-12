@@ -1,12 +1,12 @@
 import { useActionMutation } from "@agent-native/core/client/hooks";
 import type { MerchantDashboard, Totals } from "@shared/daycloser";
-import { IconCheck, IconChevronRight } from "@tabler/icons-react";
+import { IconCheck } from "@tabler/icons-react";
 import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 
-import { dateTime, money, time } from "./format";
+import { dateTime, money } from "./format";
 
 export function MerchantTotals({ totals }: { totals: Totals }) {
   const stats = [
@@ -39,13 +39,7 @@ export function MerchantTotals({ totals }: { totals: Totals }) {
   );
 }
 
-export function MerchantActivity({
-  dashboard,
-  onSelectCampaign,
-}: {
-  dashboard: MerchantDashboard;
-  onSelectCampaign: (openingId: string) => void;
-}) {
+export function MerchantActivity({ dashboard }: { dashboard: MerchantDashboard }) {
   const { timezone } = dashboard.studio;
   const [confirmingRefund, setConfirmingRefund] = useState<string>();
   const refund = useActionMutation("refund-deposit", {
@@ -53,43 +47,6 @@ export function MerchantActivity({
   });
   return (
     <div className="order-3 grid gap-4 @min-[58rem]/daycloser:order-none">
-      {dashboard.campaigns.length > 0 && (
-        <Card className="border border-border">
-          <section aria-labelledby="dc-campaign-list-title">
-            <h2 id="dc-campaign-list-title" className="px-4 py-3 text-sm font-semibold">
-              Campaigns
-            </h2>
-            <ul className="divide-y divide-border border-t border-border">
-              {dashboard.campaigns.map((campaign) => {
-                const { opening } = campaign.policy;
-                const photographer = dashboard.resources.find(
-                  (resource) => resource.id === opening.resourceId,
-                )?.name;
-                return (
-                  <li key={campaign.id}>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      className="h-auto w-full justify-between rounded-none px-4 py-2.5 text-left font-normal whitespace-normal focus-visible:ring-inset"
-                      onClick={() => onSelectCampaign(opening.id)}
-                    >
-                      <span>
-                        {photographer} · {time(opening.startAt, timezone)}–
-                        {time(opening.endAt, timezone)}
-                      </span>
-                      <span className="flex shrink-0 items-center gap-1.5 text-xs capitalize text-muted-foreground">
-                        {campaign.status}
-                        <IconChevronRight aria-hidden="true" />
-                      </span>
-                    </Button>
-                  </li>
-                );
-              })}
-            </ul>
-          </section>
-        </Card>
-      )}
-
       {dashboard.refunds.length > 0 && (
         <Card className="border border-border p-4">
           <section aria-labelledby="dc-refunds-title">

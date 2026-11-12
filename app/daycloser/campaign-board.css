@@ -1,0 +1,37 @@
+.daycloser-campaign-board .b-task-board {
+  color-scheme: light;
+  font-family: var(--font-sans, "Inter Variable", Inter, sans-serif);
+  --b-task-board-font-size: 0.8125rem;
+  --b-task-board-background: hsl(var(--muted));
+  --b-task-board-color: hsl(var(--foreground));
+  --b-task-board-gap: 0.5rem;
+  --b-task-board-column-header-color: hsl(var(--foreground));
+  --b-task-board-column-header-font-size: 0.75rem;
+  --b-task-board-column-header-font-weight: 600;
+  --b-task-board-column-count-background: hsl(var(--card));
+  --b-task-board-column-count-color: hsl(var(--muted-foreground));
+  --b-task-board-column-separator-border: 1px solid hsl(var(--border));
+  --b-task-board-card-background: hsl(var(--card));
+  --b-task-board-card-readonly-background: hsl(var(--card));
+  --b-task-board-card-border: 1px solid hsl(var(--border));
+  --b-task-board-card-body-color: hsl(var(--muted-foreground));
+  --b-task-board-card-hover-background: hsl(var(--accent));
+  --b-task-board-card-hover-transform: none;
+  --b-task-board-card-selected-background: var(--b-task-board-card-background);
+  --b-task-board-card-selected-outline: none;
+  --b-task-board-card-selected-transform: none;
+  --b-task-board-card-selected-box-shadow: none;
+  --b-primary: hsl(var(--ring));
+}
+
+.dark .daycloser-campaign-board .b-task-board {
+  color-scheme: dark;
+}
+
+.daycloser-campaign-board .b-task-board-card {
+  cursor: pointer;
+}
+
+.daycloser-campaign-board .dc-campaign-selected {
+  --b-task-board-card-border: 1px solid hsl(var(--ring));
+}

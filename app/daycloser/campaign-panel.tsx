@@ -8,20 +8,13 @@ import {
   IconPlayerPlay,
 } from "@tabler/icons-react";
 import { useState } from "react";
+import type { Ref } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 
-import { dateTime, money, time } from "./format";
-
-const campaignStatus = {
-  proposed: "Needs approval",
-  active: "Active",
-  paused: "Paused",
-  completed: "Complete",
-  expired: "Expired",
-};
+import { campaignStatusLabels, dateTime, money, time } from "./format";
 
 function DemoInboxLink({ conversation }: { conversation: MerchantConversation }) {
   const [href, setHref] = useState<string>();
@@ -62,12 +55,14 @@ export function CampaignPanel({
   campaign,
   conversations,
   timezone,
+  headingRef,
 }: {
   opening: Opening | undefined;
   photographer: string | undefined;
   campaign: Campaign | undefined;
   conversations: MerchantConversation[];
   timezone: string;
+  headingRef: Ref<HTMLHeadingElement>;
 }) {
   const propose = useActionMutation("propose-campaign");
   const approve = useActionMutation("approve-campaign");
@@ -81,12 +76,17 @@ export function CampaignPanel({
     >
       <Card className="grid gap-4 border border-border p-4">
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <h2 id="dc-campaign-heading" className="text-sm font-semibold">
+          <h2
+            id="dc-campaign-heading"
+            className="scroll-mt-4 text-sm font-semibold"
+            ref={headingRef}
+            tabIndex={-1}
+          >
             Sell an opening
           </h2>
           {campaign && (
             <span className="rounded-md bg-muted px-2 py-1 text-xs font-medium text-foreground">
-              {campaignStatus[campaign.status]}
+              {campaignStatusLabels[campaign.status]}
             </span>
           )}
         </div>

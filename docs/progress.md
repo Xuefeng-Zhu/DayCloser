@@ -6,6 +6,10 @@ The application uses Agent-Native Chat 0.227.0 and keeps its workspace navigatio
 
 Desktop Chrome rendered the built-in trial inside the authenticated Agent-Native workspace. The Pacific time axis aligned Maya’s paid 2:30 PM booking and its 3:00 PM buffer. Click and Enter selected openings in the campaign panel. The schedule rendered alongside the agent panel and followed the workspace’s light and dark themes. The frozen install, typecheck, and Agent-Native doctor passed.
 
+## Campaigns and Calendar verification
+
+In the authenticated Agent-Native workspace, the TaskBoard showed campaigns in five status columns. Mouse and keyboard activation opened the corresponding campaign policy. The Calendar showed the same studio day, photographer assignments, openings, and 2:30 PM Pacific paid booking as the timeline. Selecting a Calendar opening updated the campaign panel. Both views fit a 390 px viewport, the board scrolled within its panel, and both widgets followed the shell theme with the agent panel open.
+
 ## Original MVP verification
 
 | Check | Result |
