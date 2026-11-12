@@ -7,8 +7,15 @@ import { fmtSlot, money } from "./time.js";
 
 const API = process.env.PAYPAL_API_BASE || "https://api-m.sandbox.paypal.com";
 
+/**
+ * PAYPAL_PROXY_AUTH=1 is for sandboxes where an egress proxy injects the app's
+ * credentials as HTTP Basic auth (PayPal REST accepts client_id:secret Basic auth),
+ * so the secret never enters the process.
+ */
+const proxyAuth = () => process.env.PAYPAL_PROXY_AUTH === "1";
+
 export function paypalConfigured() {
-  return !!(process.env.PAYPAL_CLIENT_ID && process.env.PAYPAL_CLIENT_SECRET);
+  return proxyAuth() || !!(process.env.PAYPAL_CLIENT_ID && process.env.PAYPAL_CLIENT_SECRET);
 }
 
 let cached: { token: string; exp: number } | null = null;
@@ -30,11 +37,11 @@ async function accessToken(): Promise<string> {
 }
 
 async function pp<T>(path: string, init: RequestInit & { idempotencyKey?: string } = {}): Promise<T> {
-  const token = await accessToken();
+  const auth: Record<string, string> = proxyAuth() ? {} : { Authorization: `Bearer ${await accessToken()}` };
   const res = await fetch(`${API}${path}`, {
     ...init,
     headers: {
-      Authorization: `Bearer ${token}`,
+      ...auth,
       "Content-Type": "application/json",
       Prefer: "return=representation",
       ...(init.idempotencyKey ? { "PayPal-Request-Id": init.idempotencyKey } : {}),
