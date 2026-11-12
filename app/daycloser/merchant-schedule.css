@@ -1,0 +1,149 @@
+.daycloser-scheduler {
+  --schedule-opening: var(--color-blue-500);
+  --schedule-held: var(--color-violet-500);
+  --schedule-payment: var(--color-amber-500);
+  --schedule-paid: var(--color-emerald-500);
+  color-scheme: light;
+}
+
+.dark .daycloser-scheduler {
+  color-scheme: dark;
+}
+
+.daycloser-scheduler .b-widget.b-scheduler {
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
+  font-family: var(--font-sans, "Inter Variable", Inter, sans-serif);
+  font-size: 0.8125rem;
+  --b-widget-border-color: hsl(var(--border));
+  --b-grid-header-background: hsl(var(--muted));
+  --b-grid-header-color: hsl(var(--muted-foreground));
+  --b-grid-header-border-color: hsl(var(--border));
+  --b-column-lines-tick-color: hsl(var(--border));
+  --b-column-lines-major-color: hsl(var(--border));
+  --b-primary: hsl(var(--ring));
+}
+
+.daycloser-scheduler :is(.b-grid-header, .b-grid-header-container, .b-sch-header-time-axis-cell) {
+  background: hsl(var(--muted));
+  border-color: hsl(var(--border));
+  color: hsl(var(--muted-foreground));
+  font-weight: 500;
+}
+
+.daycloser-scheduler :is(.b-grid-header, .b-sch-header-time-axis-cell) {
+  min-block-size: 44px;
+}
+
+.daycloser-scheduler :is(.b-grid-row, .b-grid-cell, .b-grid-vertical-scroller) {
+  background: hsl(var(--background));
+  border-color: hsl(var(--border));
+  color: hsl(var(--foreground));
+}
+
+.daycloser-scheduler :is(.b-grid-header, .b-grid-cell) {
+  padding-inline: 12px;
+}
+
+.daycloser-scheduler .b-sch-event {
+  justify-content: flex-start;
+  padding-inline: 6px;
+  border: 1px solid var(--schedule-event-border, hsl(var(--border)));
+  border-radius: calc(var(--radius) - 4px);
+  background: var(--schedule-event-surface, hsl(var(--muted)));
+  color: hsl(var(--foreground));
+}
+
+.daycloser-scheduler .b-sch-event-content {
+  min-width: 0;
+  margin-inline: 0;
+}
+
+.daycloser-scheduler .dc-event-content {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  line-height: 1.2;
+}
+
+.daycloser-scheduler .dc-event-content :is(strong, small) {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.daycloser-scheduler .dc-event-content strong {
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.daycloser-scheduler .dc-event-content small {
+  font-size: 0.6875rem;
+  color: hsl(var(--muted-foreground));
+}
+
+.daycloser-scheduler :is(.dc-event-opening, .dc-swatch-opening) {
+  --schedule-event-tint: var(--schedule-opening);
+}
+
+.daycloser-scheduler :is(.dc-event-held, .dc-swatch-held) {
+  --schedule-event-tint: var(--schedule-held);
+}
+
+.daycloser-scheduler :is(.dc-event-capture_pending, .dc-swatch-capture_pending) {
+  --schedule-event-tint: var(--schedule-payment);
+}
+
+.daycloser-scheduler :is(.dc-event-booked, .dc-swatch-booked) {
+  --schedule-event-tint: var(--schedule-paid);
+}
+
+.daycloser-scheduler
+  :is(
+    .dc-event-opening,
+    .dc-swatch-opening,
+    .dc-event-held,
+    .dc-swatch-held,
+    .dc-event-capture_pending,
+    .dc-swatch-capture_pending,
+    .dc-event-booked,
+    .dc-swatch-booked
+  ) {
+  --schedule-event-border: color-mix(in oklab, hsl(var(--border)), var(--schedule-event-tint) 33%);
+  --schedule-event-surface: color-mix(
+    in oklab,
+    hsl(var(--background)),
+    var(--schedule-event-tint) 12%
+  );
+}
+
+.daycloser-scheduler .dc-event-opening {
+  cursor: pointer;
+}
+
+.daycloser-scheduler .dc-event-selected {
+  --schedule-event-border: var(--schedule-opening);
+  --schedule-event-surface: color-mix(
+    in oklab,
+    hsl(var(--background)),
+    var(--schedule-opening) 21%
+  );
+  box-shadow: inset 0 0 0 1px var(--schedule-event-border);
+}
+
+.daycloser-scheduler :is(.dc-event-buffer, .dc-swatch-buffer) {
+  border-style: dashed;
+  --schedule-event-surface: hsl(var(--background));
+}
+
+.daycloser-scheduler .dc-event-buffer .dc-event-content {
+  display: none;
+}
+
+.daycloser-scheduler .dc-swatch {
+  inline-size: 0.75rem;
+  block-size: 0.75rem;
+  border-width: 1px;
+  border-color: var(--schedule-event-border, hsl(var(--border)));
+  background: var(--schedule-event-surface, hsl(var(--muted)));
+}

@@ -1,0 +1,26 @@
+{
+  "version": 1,
+  "onboarding": {
+    "firstRun": "off"
+  },
+  "doctor": {
+    "failOnBuild": false,
+    "dbToolScopingDenylist": {
+      "daycloser_studios": "Raw database tools are disabled. DayCloser actions enforce the configured studio or signed conversation scope.",
+      "daycloser_resources": "Raw database tools are disabled. DayCloser actions enforce the configured studio or signed conversation scope.",
+      "daycloser_contacts": "Raw database tools are disabled. DayCloser actions enforce the configured studio or signed conversation scope.",
+      "daycloser_services": "Raw database tools are disabled. DayCloser actions enforce the configured studio or signed conversation scope.",
+      "daycloser_appointments": "Raw database tools are disabled. DayCloser actions enforce the configured studio or signed conversation scope.",
+      "daycloser_campaigns": "Raw database tools are disabled. DayCloser actions enforce the configured studio or signed conversation scope.",
+      "daycloser_policies": "Raw database tools are disabled. DayCloser actions enforce the configured studio or signed conversation scope.",
+      "daycloser_conversations": "Raw database tools are disabled. DayCloser actions enforce the configured studio or signed conversation scope.",
+      "daycloser_offers": "Raw database tools are disabled. DayCloser actions enforce the configured studio or signed conversation scope.",
+      "daycloser_messages": "Raw database tools are disabled. DayCloser actions enforce the configured studio or signed conversation scope.",
+      "daycloser_holds": "Raw database tools are disabled. DayCloser actions enforce the configured studio or signed conversation scope.",
+      "daycloser_payments": "Raw database tools are disabled. DayCloser actions enforce the configured studio or signed conversation scope.",
+      "daycloser_webhook_events": "Raw database tools are disabled. DayCloser actions enforce the configured studio or signed conversation scope.",
+      "daycloser_jobs": "Raw database tools are disabled. DayCloser actions enforce the configured studio or signed conversation scope.",
+      "daycloser_activity": "Raw database tools are disabled. DayCloser actions enforce the configured studio or signed conversation scope."
+    }
+  }
+}

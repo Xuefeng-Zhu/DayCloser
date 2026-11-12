@@ -1,0 +1,31 @@
+allowBuilds:
+  tesseract.js: true
+  node-pty: true
+  ffmpeg-static: true
+  esbuild: true
+  '@vgpu/adapter-node': false
+  webgpu: false
+  "paypal@https://codeload.github.com/context-plugins/paypal-typescript-sdk/tar.gz/5d0df8a8817e5fdf2e2cd48e68f790ea4730aab2": true
+
+overrides:
+  nf3: "0.3.17"
+  "@assistant-ui/tap": "^0.5.14"
+  "@assistant-ui/store": ">=0.2.9 <0.2.14"
+
+minimumReleaseAgeExclude:
+  - typescript-7
+  - typescript
+  - fast-xml-parser
+  - "@sentry/*"
+  - "@typescript/*"
+  - "@agent-native/recap-cli"
+  - "@agent-native/toolkit"
+  - "@agent-native/agentkit"
+  - "@modelcontextprotocol/server"
+  - "@modelcontextprotocol/node"
+  - "@modelcontextprotocol/core"
+  - "@modelcontextprotocol/client"
+packageExtensions:
+  node-pty@*:
+    dependencies:
+      node-gyp: ^12.4.0
